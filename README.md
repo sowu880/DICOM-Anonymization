@@ -1,18 +1,20 @@
 # Command Line
 
+Use the .Net Core 3.1 SDK to build the project, and you will find a executable file and you can run the exe file as follow
+
 ```
 
 ./Dicom-Anonymization.exe -i inputFile -o outputFile [-c configFile]
 
 ```
 
-For now, poc only support one DICOM file as input. 
+For now, POC only supports one DICOM file as input. 
 
 # Configuration File Sample
 
 If `-c configFile` is not given, the tool will default use "configuration-sample.json" in the same directory with exe tool. For now, configuration file is just a sample used for POC testing.
 
-The configuration file has two sections, more details of configuration could reference [DICOM de-id design spec](https://microsofthealth.visualstudio.com/Health/_git/health-paas-docs?path=%2Fspecs%2FDe%252DIdentification%2FDICOM%2FRefine-De-id-Dicom.md&version=GBfeatures%2Fdicom-de-id&_a=preview). As for dicomTagRules, only tag value and VR are supported for now.
+The configuration file has two sections, more details of configuration could refer to [DICOM de-id design spec](https://microsofthealth.visualstudio.com/Health/_git/health-paas-docs?path=%2Fspecs%2FDe%252DIdentification%2FDICOM%2FRefine-De-id-Dicom.md&version=GBfeatures%2Fdicom-de-id&_a=preview). As for dicomTagRules, only tag value and VR are supported for now.
 ```
 {
   "dicomTagRules": [
