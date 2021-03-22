@@ -16,21 +16,38 @@ The configuration file has two sections, more details of configuration could ref
 ```
 {
   "dicomTagRules": [
-    
+    {
+        "tag": { "value": "(0028,0030)" }, //Pixel​Spacing, decimal string type.
+        "method": "perturb",
+        "span": "1",
+        "roundTo": 2,
+        "rangeType": "Proportional"
+    },
+    {
+        "tag": { "value": "(0040,1001)" }, //test for sequence. All tags will be redact within nested data.
+        "method": "redact"
+    },
     {
       "tag": { "value": "(0010,0020)" },  // patient ID
       "method": "cryptohash"
     },
-
+    //Locate tag by tag VR.
     {
         "tag": { "VR": "PN" },   //Patient Name
         "method": "encrypt"
     },
-    
+    {
+        "tag": { "VR": "DA" },   //Date
+        "method": "dateshift"
+    },
+    {
+        "tag": { "VR": "DT" },   //Date Time
+        "method": "dateshift"
+    }
   ],
     "parameters": {
         "dateShiftKey": "123",
-        "dateShiftScope": "SeriesInstance", 
+        "dateShiftScope": "SeriesInstance", // Scope could be SeriesInstance, StudyInstance and SOPInstance
         "dateShiftRange": "50",
         "cryptoHashKey": "123",
         "encryptKey": "", //If empty, will use random key.
