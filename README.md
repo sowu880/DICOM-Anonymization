@@ -57,6 +57,10 @@ The configuration file has two sections, more details of configuration could ref
 }
 
 ```
+
+# Nested DICOM Data
+
+If DICOM tag is SQ (sequence of items), de-id will recursively process the nested data. e.g. If redact PN (Person Name), all PN items under a root SQ tag will be redacted.
 # Detailed Usage
 
 For now, POC supports 5 de-id functions:
