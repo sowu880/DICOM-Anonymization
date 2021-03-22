@@ -1,12 +1,14 @@
 # Command Line
 
+Use the .Net Core 3.1 SDK to build the project, and you will find a executable file and you can run the exe file as follow
+
 ```
 
 ./Dicom-Anonymization.exe -i inputFile -o outputFile [-c configFile]
 
 ```
 
-For now, poc only support one DICOM file as input. 
+For now, POC only supports one DICOM file as input. 
 
 # Configuration File Sample
 
