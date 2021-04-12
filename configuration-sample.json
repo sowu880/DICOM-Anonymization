@@ -1,34 +1,42 @@
 ﻿{
-  "dicomTagRules": [
-    {
-        "tag": { "value": "(0028,0030)" }, //Pixel​Spacing, decimal string type.
-        "method": "perturb",
-        "span": "1",
-        "roundTo": 2,
-        "rangeType": "Proportional"
-    },
-    {
-        "tag": { "value": "(0040,1001)" }, //test for sequence. All tags will be redact within nested data.
-        "method": "redact"
-    },
-    {
-      "tag": { "value": "(0010,0020)" },  // patient ID
-      "method": "cryptohash"
-    },
-    //Locate tag by tag VR.
-    {
-        "tag": { "VR": "PN" },   //Patient Name
-        "method": "encrypt"
-    },
-    {
-        "tag": { "VR": "DA" },   //Date
-        "method": "dateshift"
-    },
-    {
-        "tag": { "VR": "DT" },   //Date Time
-        "method": "dateshift"
-    }
-  ],
+    "keepList": [
+        "(0010,1010)",
+        "(0010,1010)"
+    ],
+    "redactList": [
+        "(0010,1010)",
+        "(0010,1010)"
+    ],
+    "dicomTagRules": [
+        {
+            "tag": { "value": "(0010,1010)" }, //AgeString, should be positive.
+            "method": "perturb",
+            "span": "5",
+            "roundTo": 2,
+            "rangeType": "fixed"
+        },
+        {
+            "tag": { "value": "(0040,1001)" }, //test for sequence. All tags will be redact within nested data.
+            "method": "redact"
+        },
+        {
+            "tag": { "value": "(0010,0020)" }, // patient ID
+            "method": "cryptohash"
+        },
+        //Locate tag by tag VR.
+        {
+            "tag": { "VR": "PN" }, //Patient Name
+            "method": "encrypt"
+        },
+        {
+            "tag": { "VR": "DA" }, //Date
+            "method": "dateshift"
+        },
+        {
+            "tag": { "VR": "DT" }, //Date Time
+            "method": "redact"
+        }
+    ],
     "parameters": {
         "dateShiftKey": "123",
         "dateShiftScope": "SeriesInstance", // Scope could be SeriesInstance, StudyInstance and SOPInstance

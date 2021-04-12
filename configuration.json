@@ -1,0 +1,77 @@
+﻿{
+    "regenerateId": false,
+    "rules": [
+        {
+            "tag": "(0010,1010)",
+            "method": "perturb"
+        }, //AgeString, should be positive.
+        {
+            "tag": "(0008,0010)",
+            "method": "perturb",
+            "params": { "span": "5" }
+        },
+        {
+            "tag": "(0020,1010)",
+            "method": "perturb",
+            "params": { "span": "5" },
+            "settings": "perturbCustomerSetting"
+        },
+        {
+            "tag": "(xxxx,xxxx)",
+            "method": "encrypt"
+        },
+        {
+            "tag": "PatientName",
+            "method": "redact"
+        },
+        {
+            "VR": "PN",
+            "method": "cryptohash"
+        }, //Patient Name
+        {
+            "VR": "DA",
+            "method": "dateshift"
+        }, //Date
+        {
+            "VR": "DT",
+            "method": "redact"
+        } //Date Time
+    ],
+
+    "profile": [
+        "MINIMAL_KEEP_LIST_PROFILE"
+    ],
+    "defaultSettings": {
+        "perturbDefaultSetting": {
+            "span": "1",
+            "roundTo": 2,
+            "rangeType": "Proportional",
+            "distribution": "Uniform"
+        },
+        "dateShiftDefaultSetting": {
+            "dateShiftKey": "123",
+            "dateShiftScope": "SeriesInstance",
+            "dateShiftRange": "50"
+        }, // Scope could be SeriesInstance, StudyInstance and SOPInstance    
+        "cryptoHashDefaultSetting": {
+            "cryptoHashKey": "123",
+            "cryptoHashFunction": "sha256"
+        }, // function could be sha128, sha256, sha512
+        "redactDefaultSetting": {
+            "enablePartialAgesForRedact": true,
+            "enablePartialDatesForRedact": true
+        },
+        "encryptDefaultSetting": {
+            "encryptKey": "",
+            "encryptFunction": "Symmetric"
+        }
+    },
+    "customizedSettings": {
+        "perturbCustomerSetting": {
+            "span": "1",
+            "roundTo": 2,
+            "rangeType": "Proportional",
+            "distribution": "Uniform"
+        }
+    }
+}

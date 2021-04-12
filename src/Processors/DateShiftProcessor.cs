@@ -9,43 +9,60 @@ using System.Linq;
 using De_Id_Function_Shared;
 using De_Id_Function_Shared.Settings;
 using Dicom.Anonymization.AnonymizerConfigurations;
+using Dicom.Anonymization.Model;
 
 namespace Dicom.Anonymization.Processors
 {
     public class DateShiftProcessor : IAnonymizerProcessor
     {
-        public DateShiftProcessor(ParameterConfiguration parameter)
+        public DateShiftProcessor(DicomDateShiftSetting defaultSetting)
         {
-            DateShiftFunction = new DateShiftFunction(new DateShiftSetting()
-            {
-                DateShiftRange = parameter.DateShiftRange,
-                DateShiftKey = parameter.DateShiftKey,
-            });
-            DateShiftScope = parameter.DateShiftScope;
+            DefaultDateShiftFunction = CreateDateShiftFunction(defaultSetting);
+            DefaultDateShiftScope = defaultSetting.DateShiftScope;
         }
 
-        public DateShiftScope DateShiftScope { get; set; }
+        public DateShiftScope DefaultDateShiftScope { get; set; }
 
-        public DateShiftFunction DateShiftFunction { get; set; }
+        public DicomDateShiftSetting DefaultSetting { get; set; }
+
+        public DateShiftFunction DefaultDateShiftFunction { get; set; }
+
+        public DateShiftFunction CreateDateShiftFunction(DicomDateShiftSetting setting)
+        {
+            return new DateShiftFunction(new DateShiftSetting()
+            {
+                DateShiftRange = setting.DateShiftRange,
+                DateShiftKey = setting.DateShiftKey,
+            });
+        }
 
         public void Process(DicomDataset dicomDataset, DicomItem item, Dictionary<string, object> settings = null)
         {
-            if (DateShiftScope == DateShiftScope.StudyInstance)
+            DateShiftFunction dateShiftFunction = DefaultDateShiftFunction;
+            DateShiftScope dateShiftScope = DefaultDateShiftScope;
+            if (settings != null)
             {
-                DateShiftFunction.DateShiftKeyPrefix = dicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+                var dateShiftSetting = DicomDateShiftSetting.CreateFromJson(settings);
+                dateShiftFunction = CreateDateShiftFunction(dateShiftSetting);
+                dateShiftScope = dateShiftSetting.DateShiftScope;
             }
-            else if (DateShiftScope == DateShiftScope.SeriesInstance)
+
+            if (dateShiftScope == DateShiftScope.StudyInstance)
             {
-                DateShiftFunction.DateShiftKeyPrefix = dicomDataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+                dateShiftFunction.DateShiftKeyPrefix = dicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
             }
-            else if (DateShiftScope == DateShiftScope.SopInstance)
+            else if (dateShiftScope == DateShiftScope.SeriesInstance)
             {
-                DateShiftFunction.DateShiftKeyPrefix = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+                dateShiftFunction.DateShiftKeyPrefix = dicomDataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+            }
+            else if (dateShiftScope == DateShiftScope.SopInstance)
+            {
+                dateShiftFunction.DateShiftKeyPrefix = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
             }
 
             if (item.ValueRepresentation == DicomVR.DA)
             {
-                var values = ((DicomDate)item).Get<string[]>().Select(x => DateShiftFunction.ShiftDateTime(Utility.ParseDicomDate(x))).Where(x => !DateTimeUtility.IndicateAgeOverThreshold(x));
+                var values = ((DicomDate)item).Get<string[]>().Select(x => dateShiftFunction.ShiftDateTime(Utility.ParseDicomDate(x))).Where(x => !DateTimeUtility.IndicateAgeOverThreshold(x));
                 dicomDataset.AddOrUpdate(item.Tag, values.Select(x => Utility.GenerateDicomDateString(x)).ToArray());
             }
             else if (item.ValueRepresentation == DicomVR.DT)
@@ -55,7 +72,7 @@ namespace Dicom.Anonymization.Processors
                 foreach (var value in values)
                 {
                     var dateObject = Utility.ParseDicomDateTime(value);
-                    dateObject.DateValue = DateShiftFunction.ShiftDateTime(dateObject.DateValue);
+                    dateObject.DateValue = dateShiftFunction.ShiftDateTime(dateObject.DateValue);
                     if (!DateTimeUtility.IndicateAgeOverThreshold(dateObject.DateValue))
                     {
                         results.Add(Utility.GenerateDicomDateTimeString(dateObject));

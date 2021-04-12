@@ -17,9 +17,9 @@ namespace Dicom.Anonymization
 
         public AnonymizerConfigurationManager(AnonymizerConfiguration configuration)
         {
-            configuration.GenerateDefaultParametersIfNotConfigured();
+            configuration.GenerateSettings();
             _configuration = configuration;
-            DicomTagRules = _configuration.DicomTagRules.Select(entry => AnonymizationDicomTagRule.CreateAnonymizationDICOMRule(entry)).ToArray();
+            DicomTagRules = _configuration.DicomTagRules.Select(entry => AnonymizationDicomTagRule.CreateAnonymizationDICOMRule(entry, _configuration.AllSettings)).ToArray();
             // DicomVRRules = _configuration.DicomVRRules.Select(entry => AnonymizationDicomTagRule.CreateAnonymizationFhirPathRule(entry)).ToArray();
         }
 
@@ -55,14 +55,10 @@ namespace Dicom.Anonymization
             }
         }
 
-        public ParameterConfiguration GetParameterConfiguration()
+        public Dictionary<string, object> GetSettings()
         {
-            return _configuration.ParameterConfiguration;
+            return _configuration.AllSettings;
         }
 
-        public void SetDateShiftKeyPrefix(string prefix)
-        {
-            _configuration.ParameterConfiguration.DateShiftKeyPrefix = prefix;
-        }
     }
 }

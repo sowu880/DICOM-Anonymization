@@ -7,7 +7,7 @@ namespace Dicom.Anonymization.AnonymizerConfigurations
     public class AnonymizerRule
     {
         public DicomTag Tag { get; set; }
-        
+
         public string Method { get; set; }
 
         public Dictionary<string, object> RuleSettings { get; set; }

@@ -23,12 +23,22 @@ namespace Dicom.Anonymization
         internal const string EntryResourceNodeName = "resource";
 
         internal const string TagKey = "tag";
+        internal const string VRKey = "VR";
         internal const string MethodKey = "method";
+        internal const string Parameters = "params";
+        internal const string RuleSetting = "setting";
 
         internal const int DefaultPartitionedExecutionCount = 4;
         internal const int DefaultPartitionedExecutionBatchSize = 1000;
 
         internal const string GeneralResourceType = "Resource";
         internal const string GeneralDomainResourceType = "DomainResource";
+
+        internal const string RedactDefaultSetting = "redactDefaultSetting";
+        internal const string PerturbDefaultSetting = "perturbDefaultSetting";
+        internal const string EncryptDefaultSetting = "encryptDefaultSetting";
+        internal const string CryptoHashDefaultSetting = "cryptoHashDefaultSetting";
+        internal const string DateShiftDefaultSetting = "dateShiftDefaultSetting";
+
     }
 }

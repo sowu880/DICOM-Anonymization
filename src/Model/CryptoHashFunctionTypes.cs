@@ -4,8 +4,10 @@ using System.Text;
 
 namespace Dicom.Anonymization.Model
 {
-    public enum PerturbDistribution
+    public enum CryptoHashFunctionTypes
     {
-        Uniform,
+        Sha128,
+        Sha256,
+        Sha512,
     }
 }

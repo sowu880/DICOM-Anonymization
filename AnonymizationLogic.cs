@@ -14,8 +14,9 @@ namespace Microsoft.Health.Fhir.Anonymizer.Tool
             {
                 DicomFile dicomFile = await DicomFile.OpenAsync(options.InputFile).ConfigureAwait(false);
 
-                //FilterByVR(dicomFile, "PN");
                 var engine = new AnonymizerEngine(options.ConfigurationFilePath);
+                Console.WriteLine("{0,-15}{1,-40}{2,-15}{3,-30}{4,-70}", "Tag", "Name", "De-ID Method", "Original Value", "Result");
+                Console.WriteLine(new string('-', 150));
                 engine.Anonymize(dicomFile.Dataset);
                 dicomFile.Save(options.OutputFile);
 

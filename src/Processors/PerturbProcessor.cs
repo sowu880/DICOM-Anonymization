@@ -4,21 +4,29 @@ using EnsureThat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FellowOakDicom.IO;
 using System.Text;
 
 namespace Dicom.Anonymization.Processors
 {
     public class PerturbProcessor : IAnonymizerProcessor
     {
+        public PerturbProcessor(DicomPerturbSetting defaultSetting = null)
+        {
+            DefaultSetting = defaultSetting;
+        }
+
+        public DicomPerturbSetting DefaultSetting { get; set; }
+
         public void Process(DicomDataset dicomDataset, DicomItem item, Dictionary<string, object> settings = null)
         {
-            var perturbSetting = settings == null ? new PerturbSetting() : CreatePertubSettings(settings);
+            var perturbSetting = settings == null ? DefaultSetting : CreatePertubSettings(settings);
             var perturbedValues = new List<decimal>() { };
 
             if (item.ValueRepresentation == DicomVR.AS)
             {
                 var values = ((DicomAgeString)item).Get<string[]>().Select(Utility.ParseAge).Select(x => PerturbFunction.Perturb(x, perturbSetting));
-                dicomDataset.AddOrUpdate(item.Tag, values.ToArray());
+                dicomDataset.AddOrUpdate(item.Tag, values.Select(Utility.AgeToString).ToArray());
             }
             else if (item.ValueRepresentation == DicomVR.DS)
             {
@@ -67,8 +75,15 @@ namespace Dicom.Anonymization.Processors
             }
             else if (item.ValueRepresentation == DicomVR.OW)
             {
-                var values = ((DicomOtherWord)item).Get<ushort[]>().Select(x => PerturbFunction.Perturb(x, perturbSetting));
-                dicomDataset.AddOrUpdate(item.Tag, values.ToArray());
+                if (item is DicomOtherWordFragment)
+                {
+                    Console.WriteLine($"Invalid perturb operation for item {item}");
+                }
+                else
+                {
+                    var values = ((DicomOtherWord)item).Get<ushort[]>().Select(x => PerturbFunction.Perturb(x, perturbSetting));
+                    dicomDataset.AddOrUpdate(item.Tag, values.ToArray());
+                }
             }
             else if (item.ValueRepresentation == DicomVR.UL)
             {
@@ -97,7 +112,7 @@ namespace Dicom.Anonymization.Processors
             }
             else
             {
-                throw new Exception();
+                Console.WriteLine($"Invalid perturb operation for item {item}");
             }
         }
 

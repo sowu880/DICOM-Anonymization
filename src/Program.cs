@@ -7,6 +7,7 @@ using System.Text;
 using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
 using System.IO;
 using System.Linq;
+using Dicom.Anonymization.Model;
 
 namespace Dicom.Anonymization
 {
@@ -45,7 +46,7 @@ namespace Dicom.Anonymization
 
             var itemList = dataset.ToArray();
 
-            var redactProcess = new RedactProcessor(new ParameterConfiguration() { EnablePartialAgesForRedact = true});
+            var redactProcess = new RedactProcessor(new DicomRedactSetting() { EnablePartialAgeForRedact = true});
             foreach (var item in itemList)
             {
                 redactProcess.Process(dataset, item);
@@ -69,7 +70,7 @@ namespace Dicom.Anonymization
 
             var itemList = dataset.ToArray();
 
-            var redactProcess = new RedactProcessor(new ParameterConfiguration() { EnablePartialDatesForRedact = true });
+            var redactProcess = new RedactProcessor(new DicomRedactSetting() { EnablePartialDatesForRedact = true });
             foreach (var item in itemList)
             {
                 redactProcess.Process(dataset, item);

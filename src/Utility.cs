@@ -1,16 +1,19 @@
-﻿using De_Id_Function_Shared.Model;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using De_Id_Function_Shared.Model;
 
 namespace Dicom.Anonymization
 {
     public class Utility
     {
-        
-
         public static DateTimeOffset ParseDicomDate(string date)
         {
             return DateTimeOffset.ParseExact(date, "yyyyMMdd", CultureInfo.InvariantCulture);
@@ -91,6 +94,11 @@ namespace Dicom.Anonymization
 
         public static AgeValue ParseAge(string age)
         {
+            if (string.IsNullOrEmpty(age))
+            {
+                return null;
+            }
+
             Dictionary<string, AgeType> ageTypeMapping = new Dictionary<string, AgeType>
             {
                 {"Y", AgeType.Year },
@@ -106,8 +114,14 @@ namespace Dicom.Anonymization
                     return new AgeValue(uint.Parse(age.Substring(0, 3)), item.Value);
                 }
             }
-
-            return null;
+            if (uint.TryParse(age, out uint result))
+            {
+                return new AgeValue(result, AgeType.Year);
+            }
+            else
+            {
+                throw new Exception("Invalid age string");
+            }
         }
 
         public static string AgeToString(AgeValue? age)

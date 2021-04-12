@@ -4,8 +4,9 @@ using System.Text;
 
 namespace Dicom.Anonymization.Model
 {
-    public enum PerturbDistribution
+    public enum EncryptFunctionTypes
     {
-        Uniform,
+        Symmetric,
+        Asymmetric,
     }
 }

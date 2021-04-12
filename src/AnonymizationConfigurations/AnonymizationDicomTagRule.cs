@@ -1,8 +1,10 @@
-﻿using EnsureThat;
+﻿using Dicom.Anonymization.Model;
+using EnsureThat;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -14,22 +16,23 @@ namespace Dicom.Anonymization.AnonymizerConfigurations
 
         public DicomTag Tag { get; set; }
 
+        public DicomMaskedTag MaskedTag { get; set; }
+
         public string Method { get; set; }
 
-        public Dictionary<string, object> RuleSettings { get; set; }
+        public Dictionary<string, object> Parameters { get; set; }
 
-        public bool IsVRRule { get { return VR == null;  } }
+        public Dictionary<string, object> RuleSetting { get; set; }
 
-        public static AnonymizationDicomTagRule CreateAnonymizationDICOMRule(Dictionary<string, object> config)
+        public bool IsVRRule { get; set; } = false;
+
+        public bool IsMasked { get; set; } = false;
+
+        public static AnonymizationDicomTagRule CreateAnonymizationDICOMRule(Dictionary<string, object> config, Dictionary<string, object> allSettings)
         {
             if (config == null)
             {
                 throw new ArgumentNullException("config");
-            }
-
-            if (!config.ContainsKey(Constants.TagKey))
-            {
-                throw new ArgumentException("Missing tag in rule config");
             }
 
             if (!config.ContainsKey(Constants.MethodKey))
@@ -37,50 +40,104 @@ namespace Dicom.Anonymization.AnonymizerConfigurations
                 throw new ArgumentException("Missing method in rule config");
             }
 
-            TagRule tagRule;
-            try
+            Dictionary<string, object> parameters = null;
+            if (config.ContainsKey(Constants.Parameters))
             {
-                tagRule = JsonConvert.DeserializeObject<TagRule>(config[Constants.TagKey].ToString());
+                parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(config[Constants.Parameters].ToString());
             }
-            catch (JsonException innerException)
+
+            Dictionary<string, object> ruleSetting = null;
+            if (config.ContainsKey(Constants.RuleSetting))
             {
-                throw new JsonException($"Failed to parse configuration file", innerException);
+                ruleSetting = JsonConvert.DeserializeObject<Dictionary<string, object>>(allSettings[config[Constants.RuleSetting].ToString()].ToString());
+            }
+
+            if (parameters != null)
+            {
+                ruleSetting = ruleSetting == null ? parameters : parameters.Concat(ruleSetting.Where(x => !parameters.ContainsKey(x.Key))).ToDictionary(s => s.Key, s => s.Value);
             }
 
             var method = config[Constants.MethodKey].ToString();
 
-            if (!string.IsNullOrEmpty(tagRule.DicomTagValue))
+            if (config.ContainsKey(Constants.TagKey))
             {
-                var tag = DicomTag.Parse(tagRule.DicomTagValue);
-                return new AnonymizationDicomTagRule(tag, method, config);
+                var content = config[Constants.TagKey].ToString();
+
+                // masked tags
+                if (content.Contains('x'))
+                {
+                    try
+                    {
+                        var tag = DicomMaskedTag.Parse(config[Constants.TagKey].ToString());
+                        return new AnonymizationDicomTagRule(tag, method, ruleSetting);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"Failed to parse configuration file", ex);
+                    }
+                }
+
+                // tags by value
+                try
+                {
+                    var tag = DicomTag.Parse(config[Constants.TagKey].ToString());
+                    return new AnonymizationDicomTagRule(tag, method, ruleSetting);
+                }
+                catch
+                {
+                    // tags by name
+                    try
+                    {
+                        var dicomTags = new DicomTag(0, 0);
+                        DicomTag tag = (DicomTag)dicomTags.GetType().GetField(config[Constants.TagKey].ToString()).GetValue(dicomTags);
+                        return new AnonymizationDicomTagRule(tag, method, ruleSetting);
+                    }
+                    catch
+                    {
+                        throw new Exception("Failed to parse rules");
+                    }
+                }
+
             }
-            else if (!string.IsNullOrEmpty(tagRule.DicomTagVR))
+            else if (config.ContainsKey(Constants.VRKey))
             {
-                var vr = DicomVR.Parse(tagRule.DicomTagVR.ToString());
-                return new AnonymizationDicomTagRule(vr, method, config);
+                var vr = DicomVR.Parse(config[Constants.VRKey].ToString());
+                return new AnonymizationDicomTagRule(vr, method, ruleSetting);
             }
 
             throw new AnonymizerConfigurationErrorsException("Invaid tag in rule config");
         }
 
-        public AnonymizationDicomTagRule(DicomTag tag, string method, Dictionary<string, object> config)
+        public AnonymizationDicomTagRule(DicomTag tag, string method, Dictionary<string, object> ruleSetting)
         {
             EnsureArg.IsNotNull(tag, nameof(tag));
             EnsureArg.IsNotNull(method, nameof(method));
 
             Tag = tag;
             Method = method;
-            RuleSettings = config;
+            RuleSetting = ruleSetting;
         }
 
-        public AnonymizationDicomTagRule(DicomVR vr, string method, Dictionary<string, object> config)
+        public AnonymizationDicomTagRule(DicomMaskedTag tag, string method, Dictionary<string, object> ruleSetting)
+        {
+            EnsureArg.IsNotNull(tag, nameof(tag));
+            EnsureArg.IsNotNull(method, nameof(method));
+
+            MaskedTag = tag;
+            Method = method;
+            RuleSetting = ruleSetting;
+            IsMasked = true;
+        }
+
+        public AnonymizationDicomTagRule(DicomVR vr, string method, Dictionary<string, object> ruleSetting)
         {
             EnsureArg.IsNotNull(vr, nameof(vr));
             EnsureArg.IsNotNull(method, nameof(method));
 
             VR = vr;
             Method = method;
-            RuleSettings = config;
+            RuleSetting = ruleSetting;
+            IsVRRule = true;
         }
     }
 }
