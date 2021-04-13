@@ -17,7 +17,7 @@
             "settings": "perturbCustomerSetting"
         },
         {
-            "tag": "(xxxx,xxxx)",
+            "tag": "(0010,0010)",
             "method": "encrypt"
         },
         {
@@ -62,7 +62,7 @@
             "enablePartialDatesForRedact": true
         },
         "encryptDefaultSetting": {
-            "encryptKey": "",
+            "encryptKey": "123456781234567812345678",
             "encryptFunction": "Symmetric"
         }
     },

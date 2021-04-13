@@ -10,238 +10,113 @@ Use the .Net Core 3.1 SDK to build the project, and you will find a executable f
 
 For now, POC only supports one DICOM file as input. 
 
-# Configuration File Sample
+# De-Id Configuration
 
-If `-c configFile` is not given, the tool will default use "configuration-sample.json" in the same directory with exe tool. For now, configuration file is just a sample used for POC testing.
+If `-c configFile` is not given, the tool will default use "configuration.json" in the same directory with exe tool. Uses can edit configuration file to define de-id methods for different DICOM tags.
 
-The configuration file has two sections, more details of configuration could refer to [DICOM de-id design spec](https://microsofthealth.visualstudio.com/Health/_git/health-paas-docs?path=%2Fspecs%2FDe%252DIdentification%2FDICOM%2FRefine-De-id-Dicom.md&version=GBfeatures%2Fdicom-de-id&_a=preview). As for dicomTagRules, only tag value and VR are supported for now.
+The configuration file has four sections, and specified in JSON format.
+
+|Fields|Description|
+|----|----|
+|rules|De-ID rules for tags or VR.|
+|profile （Not applicable for now) |Profile that determines which tags to keep or remove.|
+|defaultSettings|Default settings for de-id functions. Default settings will be used if not specify settings in rules.|
+|customizedSettings|Customized settings for de-id functions.|
+
+
+Here is a sample configuration format :
 ```
 {
-  "dicomTagRules": [
-    {
-        "tag": { "value": "(0028,0030)" }, //Pixel​Spacing, decimal string type.
-        "method": "perturb",
-        "span": "1",
-        "roundTo": 2,
-        "rangeType": "Proportional"
-    },
-    {
-        "tag": { "value": "(0040,1001)" }, //test for sequence. All tags will be redact within nested data.
-        "method": "redact"
-    },
-    {
-      "tag": { "value": "(0010,0020)" },  // patient ID
-      "method": "cryptohash"
-    },
-    //Locate tag by tag VR.
-    {
-        "tag": { "VR": "PN" },   //Patient Name
-        "method": "encrypt"
-    },
-    {
-        "tag": { "VR": "DA" },   //Date
-        "method": "dateshift"
-    },
-    {
-        "tag": { "VR": "DT" },   //Date Time
-        "method": "dateshift"
-    }
-  ],
-    "parameters": {
-        "dateShiftKey": "123",
-        "dateShiftScope": "SeriesInstance", // Scope could be SeriesInstance, StudyInstance and SOPInstance
-        "dateShiftRange": "50",
-        "cryptoHashKey": "123",
-        "encryptKey": "", //If empty, will use random key.
-        "enablePartialAgesForRedact": true,
-        "enablePartialDatesForRedact": true
-    }
+    "rules": [
+        {"tag": "(0010,1010)","method": "perturb",}, //AgeString, should be positive.
+        {"tag": "(0008,0010)","method": "perturb", "params":{ "span":"5"}}, 
+        {"tag": "(0020,1010)", "method": "perturb", "params":{ "span":"5"}, "setting":"perturbCustomerSetting"}, 
+        {"tag": "(0040,xxxx)",  "method": "redact" }, 
+        {"tag": "PatientID",  "method": "cryptohash"},
+        {"VR": "PN", "method": "encrypt"}, //Patient Name
+        {"VR": "DA",  "method": "dateshift"}, //Date
+        {"VR": "DT", "method": "redact"} //Date Time
+    ],
+
+    "profiles":[
+        "MINIMAL_KEEP_LIST_PROFILE",
+    ],
+    "defaultSettings":[
+        {"perturbDefaultSetting":{ "span": "10", "roundTo": 2, "rangeType": "Fixed"}},
+        {"dateShiftDefautSetting":{"dateShiftKey": "123", "dateShiftScope": "SeriesInstance", "dateShiftRange": "50"}}// Scope could be SeriesInstance, StudyInstance and SOPInstance    
+        {"cryptoHashDefaultSetting":{"cryptoHashKey": "123", "cryptoHashFunction": "sha256" }}, // function could be sha128, sha256, sha512
+        {"RedactDefaultSetting":{"enablePartialAgesForRedact": true, "enablePartialDatesForRedact": true}},
+    ],
+    "cutomizedSettings":[
+        {"perturbCustomerSetting":{ "span": "1", "roundTo": 2, "rangeType": "Proportional"}},
+    ]
 }
 
 ```
 
+## How to set rules
+
+|Fields|Description| Valid Value|Required|default value|
+|--|-----|-----|--|--|
+|tag|Used to define DICOM elements |1. Tag Value, e.g. (0010, 0010) or 0010,0010 or 00100010. <br>2. Tag Name. e.g. PatientName. <br> 3. Masked DICOM Tag. e.g. (0010, xxxx) or (xx10, xx10). <br> 4. DICOM VR. e.g. PN, DA.|True|| 
+|method|De-ID method.| keep, redact, perturb, dateshift, encrypt, cryptohash.| True||
+|setting| Setting of de-id methods. Users can add customized settings in the field of "customizedSettings" and use setting's name here. |valid setting's name |False|Default setting in the field of "defaultSettings"|
+|params|parameters override setting for de-id methods.|valid parameters|False|null|
+
+Each DICOM tag could only be de-id one time, if two rules have conliction on one tag, only the former will be applied. 
+## How to customize settings
+
+ Users could add customized settings in the unique setting name which could be indexed by name in the field of "rules". Since parameters in settings are varied for different de-id methods. users should take care of the inconsistency between de-id methods and settings.
+
+### Perturb Setting
+
+With perturbation rule, you can replace specific values by adding noise. Perturb function could be used for any of numeric values including (ushort, short, uint, int, ulong, long, decimal, double, float). Affected DICOM VR: AS, DS, FL, OF, FD, OD, IS, SL, SS, US, OW, UL, OL, UV, OV.
+
+|Parameters|Description|Valid Value|Required|default value|
+|----|----|----|----|---|
+|Span| A non-negative value representing the random noise range. For fixed range type, the noise will be sampled from a uniform distribution over [-span/2, span/2]. For proportional range type, the noise will be sampled from a uniform distribution over [-span/2 * value, span/2 * value]|Positive Integer|True|
+|RangeType|Define whether the span value is fixed or proportional.|fixed , proportional|False|fixed|
+|RoundTo| specifies the number of decimal places to round to.|A value from 0 to 28|False|2|
+
+
+
+### DateShift Setting
+
+Dateshift function can only be used for date (DA) and date time (DT) types. In configuration, customers can define dateShiftRange, DateShiftKey and dateShiftScope. 
+
+|Parameters|Description|Valid Value|Required|default value|
+|----|----|--|--|--|
+|dateShiftRange| A non-negative value representing the dateshift range.|positive integer|False|50|
+|dateShiftKey|Key used to generate shift days.|string|False|A randomly generated string will be used as default key|
+|dateShiftScope|Scopes that share the same date shift key prefix. |SeriesInstance, StudyInstance, SOPInstance. |False|SeriesInstance|
+
+### Redact Setting
+
+The DICOM tag will be removed by default when using redact method. As for age (AS), date (DA) and date time (DT), users can set partial redact as follow:
+
+|Parameters|Description|Valid Value|Affected VR|Required|default value|
+|----|------|--|--|--|--|
+|enablePartialAgesForRedact|If the value is set to true, only age values over 89 will be redacted.|boolean| AS |False|False|
+|enablePartialDatesForRedact|If the value is set to true, date, dateTime will keep year. e.g. 20210130 -> 20210101|boolean|DA, DT|False|False|
+
+### CryptoHash Setting
+
+Users can set cryptoHash key and cryptoHash function (only support sha256 for now) in setting.
+|Parameters|Description|Valid Values|Required|default value|
+|----|------|--|--|--|
+|cryptoHashKey| Key for cryptoHash|string|False|A randomly generated string|
+|cryptoHashFunction| CryptoHash function |sha256|False|sha256|
+
+### Encryption Setting
+
+Users can set encrypt key and encrypt function (only support AES for now) in setting.
+|Parameters|Description|Valid Values|Required|default value|
+|----|------|--|--|--|
+|encryptKey| Key for encryption|128, 192 or 256 bit string|False|A randomly generated 256-bit string|
+|encryptFunction| Encrypt function |AES|False|AES|
 # Nested DICOM Data
 
-If DICOM tag is SQ (sequence of items), de-id will recursively process the nested data. e.g. If redact PN (Person Name), all PN items under a root SQ tag will be redacted.
-# Detailed Usage
+For now, we only support define de-id root level tags.
+If DICOM tag is SQ (sequence of items), only "redact" method could be used to remove entire sequence.
 
-For now, POC supports 5 de-id functions:
-
-## Redact
-Behaviors:
-    
-1. Supports partial redact for date and date time. (Maintains values of year)
-2. Supports partial redact for Age. (Maintains values if less than 89 years old)
-3. Redact the entire tag for other types of data.
-
-Here is a sample configuration:
-
-```
-    "dicomTagRules": [
-        {
-            "tag": { "VR": "DA" },   //Date
-            "method": "redact"
-        },
-    ]
-    "parameters": {
-        "enablePartialAgesForRedact": true,
-        "enablePartialDatesForRedact": true
-    }
-
-```
-
-Input:
-```
-"(0008,0020)" : "20161012"
-```
-Output:
-```
-"(0008,0020)" : "20160101"
-```
-
-## DateShift
-
-Dateshift function can only be used for date (DA) and date time (DT) types. In configuration, customers can define dateShiftRange, DateShiftKey and dateShiftScope. The valid scope valid is SeriesInstance, StudyInstance or SOPInstance. The date within the same scope will shift same days.
-
-A sample configuration:
-
-```
-    "dicomTagRules": [
-        {
-            "tag": { "VR": "DA" },   //Date
-            "method": "dateshift"
-        },
-    ]
-    "parameters": {
-        
-        "dateShiftKey": "123",
-        "dateShiftScope": "SeriesInstance", 
-        "dateShiftRange": "50",
-    }
-
-```
-
-Input:
-```
-"(0008,0020)" : "20061012"
-```
-Output:
-```
-"(0008,0020)" : "20061201"
-```
-
-## Perturb
-
-Perturb function could be used for any of numeric values including (ushort, short, uint, int, ulong, long, decimal, double, float).
-
-Here is a mapping between DICOM VR and numeric types after transformation.
-|VR|VR name| numeric type|
-|---|---|---|
-|AS|Age String|int|
-|DS|Decimal String|decimal|
-|FL|Float Point Single|float|
-|OF|Other Float| float|
-|FD|Float Point Double| float|
-|OD|Other Double| double |
-|IS|Integer String|int|
-|SL| Signed Long| int|
-|SS|Signed Short|short|
-|US|Unsiged Short| ushort|
-|OW|Other Word|ushort|
-|UL|Unsigned Long|uint|
-|OL|Other Long|uint|
-|UV|Unsigned Very Long|ulong|
-|OV|Other Very Long|ulong|
-|OL|Signed Very Long|long|
-
->Note:
- UV, OV and OL are not defined in DICOM standard but defined in fo-dicom library.
-
-Here is a sample perturb setting in configuration. Details of these settings could refer [FHIR's perturb setting.](https://github.com/microsoft/FHIR-Tools-for-Anonymization/tree/6a9b8614c319afb5f85959c02f86b2304ec4618c#Perturb-method)
-
-
-```
-    "dicomTagRules": [
-    {
-        "tag": { "value": "(0028,0030)" }, //Pixel​Spacing, decimal string type.
-        "method": "perturb",
-        "span": "1",
-        "roundTo": 2,
-        "rangeType": "Proportional",
-    },
-
-```
-
-
-Input:
-```
-"(0028,0030)" : 0.58984375\0.58984375
-```
-Output:
-```
-"(0028,0030)" : 0.74\0.75
-```
-
->Note:  BACKSLASH "\\" used to concatenate multi values.
-
-## Encryption
-
-We default using sysmetric AES encryption method in DICOM. (Asysmetric encryption is also supported in de-id lib.) Customers can set encryption key in configuration file. If encryption key is not given, the tool will randomly generate a string as key. The acceptable key sizes are 128, 192 or 256 bytes.
-
-Customers should take care of the length of the output since all DICOM tags have maximum length limits.
-
-A sample configuration:
-
-```
-    "dicomTagRules": [
-        {
-            "tag": { "VR": "PN" },   //Patient Name
-            "method": "encrypt"
-        },
-    ]
-    "parameters": {
-        "encryptKey": "",
-    }
-```
-
-Input:
-```
-"(0010,0010)" : "Annie"
-```
-Output:
-```
-"(0010,0010)" : "zp/pSrmzmxm5Eh6jj6ocBVfw39f/V8nCMwk/kgvXc14="
-```
-
-
-## CryptoHash
-
-The usage and settings of cryptoHash are similar with encryption. DICOM will use Sha256 as default methods which has 64 bytes output. 
-
-Customers should take care of the length limitations when using.
-
-
-A sample configuration:
-
-```
-    "dicomTagRules": [
-        {
-            "tag": { "VR": "PN" },   //Patient Name
-            "method": "cryptoHash"
-        },
-    ]
-    "parameters": {
-        "cryptoHashKey": "123"
-    }
-
-```
-
-Input:
-```
-"(0010,0010)" : "Annie"
-```
-Output:
-```
-"(0010,0010)" : "b4a3161dca74ff66687faf324a2db061282dee979d7ad7614eaae7d4d7b9301f"
-```
 
