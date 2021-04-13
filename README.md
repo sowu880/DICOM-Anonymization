@@ -56,21 +56,30 @@ Here is a sample configuration format :
 
 ## How to set rules
 
+Users can list de-id rules for individual DICOM tag by tag value or tag name as well as a set of tags using masked value or DICOM VR. Ex：
+```
+{"tag": "(0010,1010)","method": "perturb"}, 
+{"tag": "(0040,xxxx)",  "method": "redact"},
+{"tag": "PatientID",  "method": "cryptohash"},
+{"VR": "PN", "method": "encrypt"},
+```
+Here are parameters in each rules:
+
 |Fields|Description| Valid Value|Required|default value|
 |--|-----|-----|--|--|
 |tag|Used to define DICOM elements |1. Tag Value, e.g. (0010, 0010) or 0010,0010 or 00100010. <br>2. Tag Name. e.g. PatientName. <br> 3. Masked DICOM Tag. e.g. (0010, xxxx) or (xx10, xx10). <br> 4. DICOM VR. e.g. PN, DA.|True|| 
 |method|De-ID method.| keep, redact, perturb, dateshift, encrypt, cryptohash.| True||
-|setting| Setting of de-id methods. Users can add customized settings in the field of "customizedSettings" and use setting's name here. |valid setting's name |False|Default setting in the field of "defaultSettings"|
+|setting| Setting for de-id methods. Users can add customized settings in the field of "customizedSettings" and specify setting's name here. |valid setting's name |False|Default setting in the field of "defaultSettings"|
 |params|parameters override setting for de-id methods.|valid parameters|False|null|
 
-Each DICOM tag could only be de-id one time, if two rules have conliction on one tag, only the former will be applied. 
+Each DICOM tag could only be de-id one time, if two rules have conflict on one tag, only the former rule will be applied. 
 ## How to customize settings
 
- Users could add customized settings in the unique setting name which could be indexed by name in the field of "rules". Since parameters in settings are varied for different de-id methods. users should take care of the inconsistency between de-id methods and settings.
+ Users could add customized settings with unique name which could be indexed in the field of "rules". Since parameters in settings are varied for different de-id methods. users should take care of the inconsistency between de-id methods and settings.
 
 ### Perturb Setting
 
-With perturbation rule, you can replace specific values by adding noise. Perturb function could be used for any of numeric values including (ushort, short, uint, int, ulong, long, decimal, double, float). Affected DICOM VR: AS, DS, FL, OF, FD, OD, IS, SL, SS, US, OW, UL, OL, UV, OV.
+With perturbation rule, you can replace specific values by adding noise. Perturb function could be used for any of numeric values including (ushort, short, uint, int, ulong, long, decimal, double, float). Applicable DICOM VR: AS, DS, FL, OF, FD, OD, IS, SL, SS, US, OW, UL, OL, UV, OV.
 
 |Parameters|Description|Valid Value|Required|default value|
 |----|----|----|----|---|
@@ -101,7 +110,7 @@ The DICOM tag will be removed by default when using redact method. As for age (A
 
 ### CryptoHash Setting
 
-Users can set cryptoHash key and cryptoHash function (only support sha256 for now) in setting.
+Users can set cryptoHash key and cryptoHash function (only support sha256 for now) for cryptoHash.
 |Parameters|Description|Valid Values|Required|default value|
 |----|------|--|--|--|
 |cryptoHashKey| Key for cryptoHash|string|False|A randomly generated string|
@@ -109,7 +118,7 @@ Users can set cryptoHash key and cryptoHash function (only support sha256 for no
 
 ### Encryption Setting
 
-Users can set encrypt key and encrypt function (only support AES for now) in setting.
+Users can set encrypt key and encrypt function (only support AES for now) in encrypt setting.
 |Parameters|Description|Valid Values|Required|default value|
 |----|------|--|--|--|
 |encryptKey| Key for encryption|128, 192 or 256 bit string|False|A randomly generated 256-bit string|
