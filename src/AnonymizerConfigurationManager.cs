@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Dicom.Anonymization.AnonymizerConfigurations;
+using Dicom.Anonymization.AnonymizationConfigurations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -13,6 +13,12 @@ namespace Dicom.Anonymization
 
         public AnonymizationDicomTagRule[] DicomTagRules { get; private set; } = null;
 
+        public DicomTagList KeepList { get; private set; } = null;
+
+        public DicomTagList RemoveList { get; private set; } = null;
+
+        public bool deIdOneTime { get; private set; } = false;
+
         // public AnonymizerRule[] DicomVRRules { get; private set; } = null;
 
         public AnonymizerConfigurationManager(AnonymizerConfiguration configuration)
@@ -20,6 +26,8 @@ namespace Dicom.Anonymization
             configuration.GenerateSettings();
             _configuration = configuration;
             DicomTagRules = _configuration.DicomTagRules.Select(entry => AnonymizationDicomTagRule.CreateAnonymizationDICOMRule(entry, _configuration.AllSettings)).ToArray();
+            KeepList = _configuration.UnchangeList;
+            RemoveList = _configuration.RemoveList;
             // DicomVRRules = _configuration.DicomVRRules.Select(entry => AnonymizationDicomTagRule.CreateAnonymizationFhirPathRule(entry)).ToArray();
         }
 

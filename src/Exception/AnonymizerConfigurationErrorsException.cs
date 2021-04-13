@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Dicom.Anonymization.AnonymizerConfigurations
+namespace Dicom.Anonymization.AnonymizationConfigurations
 {
     public class AnonymizerConfigurationErrorsException : Exception
     {

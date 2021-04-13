@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Dicom.Anonymization.AnonymizerConfigurations
+namespace Dicom.Anonymization.AnonymizationConfigurations
 {
     public class AnonymizationDicomTagRule
     {

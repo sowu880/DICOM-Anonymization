@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace Dicom.Anonymization.AnonymizerConfigurations
+namespace Dicom.Anonymization.AnonymizationConfigurations
 {
     [DataContract]
     public class ParameterConfiguration

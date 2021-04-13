@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Dicom.Anonymization.AnonymizationConfigurations;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 
-namespace Dicom.Anonymization.AnonymizerConfigurations
+namespace Dicom.Anonymization.AnonymizationConfigurations
 {
     [DataContract]
     public class AnonymizerConfiguration
@@ -11,8 +12,17 @@ namespace Dicom.Anonymization.AnonymizerConfigurations
         [DataMember(Name = "regenerateID")]
         public bool RegenerateID { get; set; }
 
-        [DataMember(Name = "rules")]
+        [DataMember(Name = "deIdOneTime")]
+        public bool DeIdOneTime { get; set; }
+
+        [DataMember(Name = "unchangeList")]
+        public DicomTagList UnchangeList { get; set; }
+
+        [DataMember(Name = "changeList")]
         public Dictionary<string, object>[] DicomTagRules { get; set; }
+
+        [DataMember(Name = "removeList")]
+        public DicomTagList RemoveList { get; set; }
 
         [DataMember(Name = "defaultSettings")]
         public Dictionary<string, object> DefaultSettings { get; set; }

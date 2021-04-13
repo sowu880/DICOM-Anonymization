@@ -1,6 +1,16 @@
 ﻿{
     "regenerateId": false,
-    "rules": [
+    "deIdOneTime": false,
+    "unchangeList": {
+        "tagList": [
+            "(0020,xxxx)",
+            "PN",
+        ],
+        "exceptionList": [
+            "(0020,0010)"
+        ]
+    },
+    "changeList": [
         {
             "tag": "(0010,1010)",
             "method": "perturb"
@@ -17,14 +27,6 @@
             "settings": "perturbCustomerSetting"
         },
         {
-            "tag": "(xxxx,xxxx)",
-            "method": "encrypt"
-        },
-        {
-            "tag": "PatientName",
-            "method": "redact"
-        },
-        {
             "VR": "PN",
             "method": "cryptohash"
         }, //Patient Name
@@ -37,7 +39,17 @@
             "method": "redact"
         } //Date Time
     ],
-
+    "removeList": {
+        "tagList":
+        [
+            "(0010,xxxx)",
+            "PN"
+        ],
+        "exceptionList":
+        [
+            "(0010,0010)"
+        ]
+    },
     "profile": [
         "MINIMAL_KEEP_LIST_PROFILE"
     ],

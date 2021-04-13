@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using De_Id_Function_Shared;
 using De_Id_Function_Shared.Settings;
-using Dicom.Anonymization.AnonymizerConfigurations;
+using Dicom.Anonymization.AnonymizationConfigurations;
 using Dicom.Anonymization.Model;
 
 namespace Dicom.Anonymization.Processors

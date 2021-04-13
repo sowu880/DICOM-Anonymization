@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FellowOakDicom.IO;
 using System.Text;
+using Dicom.IO.Buffer;
 
 namespace Dicom.Anonymization.Processors
 {
@@ -78,6 +79,29 @@ namespace Dicom.Anonymization.Processors
                 if (item is DicomOtherWordFragment)
                 {
                     Console.WriteLine($"Invalid perturb operation for item {item}");
+                }
+                else
+                {
+                    var values = ((DicomOtherWord)item).Get<ushort[]>().Select(x => PerturbFunction.Perturb(x, perturbSetting));
+                    dicomDataset.AddOrUpdate(item.Tag, values.ToArray());
+                }
+            }
+            else if (item.ValueRepresentation == DicomVR.OB)
+            {
+                if (item is DicomOtherByteFragment)
+                {
+                    /*
+                    List<byte[]> results = new List<byte[]>();
+                    var enumerator = ((DicomFragmentSequence)item).GetEnumerator();
+
+                    var element = new DicomOtherByteFragment(item.Tag);
+
+                    while (enumerator.MoveNext())
+                    {
+                        element.Fragments.Add(new MemoryByteBuffer(PerturbFunction.Perturb(enumerator.Current.Data, perturbSetting)));
+                    }
+                    */
+
                 }
                 else
                 {

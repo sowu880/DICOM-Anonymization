@@ -14,7 +14,7 @@ using De_Id_Function_Shared;
 using De_Id_Function_Shared.Model;
 using De_Id_Function_Shared.Settings;
 using Dicom;
-using Dicom.Anonymization.AnonymizerConfigurations;
+using Dicom.Anonymization.AnonymizationConfigurations;
 using Dicom.Anonymization.Model;
 using Newtonsoft.Json;
 

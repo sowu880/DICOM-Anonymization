@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace Dicom.Anonymization.AnonymizerConfigurations
+namespace Dicom.Anonymization.AnonymizationConfigurations
 {
     [DataContract]
     public class TagRule

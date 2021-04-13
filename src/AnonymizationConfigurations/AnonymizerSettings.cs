@@ -1,4 +1,4 @@
-﻿namespace Dicom.Anonymization.AnonymizerConfigurations
+﻿namespace Dicom.Anonymization.AnonymizationConfigurations
 {
     public class AnonymizerSettings
     {

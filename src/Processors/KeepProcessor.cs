@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using Dicom;
-using Dicom.Anonymization.AnonymizerConfigurations;
+using Dicom.Anonymization.AnonymizationConfigurations;
 
 namespace Dicom.Anonymization.Processors
 {

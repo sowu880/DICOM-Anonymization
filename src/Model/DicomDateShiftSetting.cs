@@ -1,5 +1,5 @@
 ﻿using De_Id_Function_Shared.Settings;
-using Dicom.Anonymization.AnonymizerConfigurations;
+using Dicom.Anonymization.AnonymizationConfigurations;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

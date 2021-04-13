@@ -1,5 +1,5 @@
 ﻿using De_Id_Function_Shared;
-using Dicom.Anonymization.AnonymizerConfigurations;
+using Dicom.Anonymization.AnonymizationConfigurations;
 using Dicom.Anonymization.Model;
 using System;
 using System.Collections.Generic;

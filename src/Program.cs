@@ -1,5 +1,5 @@
 ﻿using Dicom;
-using Dicom.Anonymization.AnonymizerConfigurations;
+using Dicom.Anonymization.AnonymizationConfigurations;
 using Dicom.Anonymization.Processors;
 using System;
 using System.Collections.Generic;
