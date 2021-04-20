@@ -10,6 +10,18 @@ Use the .Net Core 3.1 SDK to build the project, and you will find a executable f
 
 For now, POC only supports one DICOM file as input. 
 
+# De-Id Methods
+|De-id Method|Description|Need Setting|
+|-----|-----|-----|
+|keep|Retains the value as is.|False|
+|redact|Clean the value.|true|
+|remove|Remove the element. |false|
+|perturb|Perturb the value with random noise addition.|true|
+|dateShift|Shifts the value using the Date-shift algorithm.|true|
+|cryptoHash|Transforms the value using Crypto-hash method.|true|
+|encrypt|Transforms the value using Encrypt method.|true|
+|substitute|Substitutes the value to a predefined value.|true|
+|refreshUID|replace with a non-zero length UID|false|
 # De-Id Configuration
 
 If `-c configFile` is not given, the tool will default use "configuration.json" in the same directory with exe tool. Uses can edit configuration file to define de-id methods for different DICOM tags.
@@ -68,7 +80,7 @@ Here are parameters in each rules:
 |Fields|Description| Valid Value|Required|default value|
 |--|-----|-----|--|--|
 |tag|Used to define DICOM elements |1. Tag Value, e.g. (0010, 0010) or 0010,0010 or 00100010. <br>2. Tag Name. e.g. PatientName. <br> 3. Masked DICOM Tag. e.g. (0010, xxxx) or (xx10, xx10). <br> 4. DICOM VR. e.g. PN, DA.|True|| 
-|method|De-ID method.| keep, redact, perturb, dateshift, encrypt, cryptohash.| True||
+|method|De-ID method.| keep, redact, perturb, dateshift, encrypt, cryptohash, substitute, refreshID, remove.| True||
 |setting| Setting for de-id methods. Users can add customized settings in the field of "customizedSettings" and specify setting's name here. |valid setting's name |False|Default setting in the field of "defaultSettings"|
 |params|parameters override setting for de-id methods.|valid parameters|False|null|
 
@@ -101,7 +113,7 @@ Dateshift function can only be used for date (DA) and date time (DT) types. In c
 
 ### Redact Setting
 
-The DICOM tag will be removed by default when using redact method. As for age (AS), date (DA) and date time (DT), users can set partial redact as follow:
+The value will be cleaned by default when using redact method. As for age (AS), date (DA) and date time (DT), users can set partial redact as follow:
 
 |Parameters|Description|Valid Value|Affected VR|Required|default value|
 |----|------|--|--|--|--|
@@ -123,6 +135,16 @@ Users can set encrypt key and encrypt function (only support AES for now) in enc
 |----|------|--|--|--|
 |encryptKey| Key for encryption|128, 192 or 256 bit string|False|A randomly generated 256-bit string|
 |encryptFunction| Encrypt function |AES|False|AES|
+
+### Substitute Setting
+
+Substitue method just has one parameter "replaceWith" for setting, which is the new value for substitute.
+
+|Parameters|Description|Valid Values|Required|default value|
+|----|------|--|--|--|
+|replaceWith| New value for substitute|string|True||
+
+
 # Nested DICOM Data
 
 For now, we only support define de-id root level tags.
