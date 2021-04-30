@@ -4,14 +4,15 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Dicom.Anonymization.Model;
 
-namespace Dicom.Anonymization.Model
+namespace Dicom.Anonymization.Processors.Settings
 {
-    public class DicomDateShiftSetting : DateShiftSetting
+    public class DicomDateShiftSetting : DateShiftSetting, IDicomAnonymizationSetting
     {
         public DateShiftScope DateShiftScope { get; set; }
 
-        public static DicomDateShiftSetting CreateFromJsonString(string settings)
+        public IDicomAnonymizationSetting CreateFromRuleSettings(string settings)
         {
             try
             {
@@ -23,7 +24,7 @@ namespace Dicom.Anonymization.Model
             }
         }
 
-        public static DicomDateShiftSetting CreateFromJson(Dictionary<string, object> settings)
+        public IDicomAnonymizationSetting CreateFromRuleSettings(Dictionary<string, object> settings)
         {
             try
             {

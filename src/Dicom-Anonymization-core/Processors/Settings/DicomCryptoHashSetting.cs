@@ -2,16 +2,17 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using Dicom.Anonymization.Model;
 
-namespace Dicom.Anonymization.Model
+namespace Dicom.Anonymization.Processors.Settings
 {
-    public class DicomCryptoHashSetting
+    public class DicomCryptoHashSetting : IDicomAnonymizationSetting
     {
         public string CryptoHashKey { get; set; }
 
         public CryptoHashFunctionTypes CryptoHashFunction { get; set; }
 
-        public static DicomCryptoHashSetting CreateFromJsonString(string settings)
+        public IDicomAnonymizationSetting CreateFromRuleSettings(string settings)
         {
             try
             {
@@ -23,7 +24,7 @@ namespace Dicom.Anonymization.Model
             }
         }
 
-        public static DicomCryptoHashSetting CreateFromJson(Dictionary<string, object> settings)
+        public IDicomAnonymizationSetting CreateFromRuleSettings(Dictionary<string, object> settings)
         {
             try
             {

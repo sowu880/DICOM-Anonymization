@@ -31,31 +31,10 @@ namespace Microsoft.Health.Dicom.Anonymization.Tool
     {
         public async static Task Main(string[] args)
         {
-
-             // Test();
             //var result = new DateTime(2021, 02, 28, 0, 0, 0, 0).ToString("yyyy-MM-ddTHH:mm:ss.FFF");
              // args = "-i /SampleDicom/tciadicoms/acrin-flt-breast/1.3.6.1.4.1.14519.5.2.1.7009.2401.112735177269997047313598985735/1-384c4c41409ec3f802d2e09a2740ff30.dcm - o test.dcm".Split();
              await CommandLine.Parser.Default.ParseArguments<Options>(args)
                .MapResult(async options => await AnonymizationLogic.AnonymizeAsync(options).ConfigureAwait(false), _ => Task.FromResult(1)).ConfigureAwait(false);
-        }
-
-        public static void Test()
-        {
-            /*
-            var tag1 = DicomTag.Modality;
-
-            var dataset = new DicomDataset
-            {
-                
-            };
-            dataset.Add( tag1, "01234567890123456789" );
-            var itemList = dataset.ToArray();
-            
-            var maskedTag = DicomMaskedTag.Parse("(xxxx,xxxx)");
-            var isMatch = maskedTag.IsMatch(new DicomTag(0x1110, 0x1111));
-            */
-            var dicomTags = new DicomTag(0,0);
-            var resutl = dicomTags.GetType().GetField("PersonName").GetValue(dicomTags);
         }
     }
 }

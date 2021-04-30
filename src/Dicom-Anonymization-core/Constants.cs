@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Dicom.Anonymization.Processors.Settings;
 
 namespace Dicom.Anonymization
 {
@@ -40,7 +41,6 @@ namespace Dicom.Anonymization
         internal const string CryptoHashDefaultSetting = "cryptoHashDefaultSetting";
         internal const string DateShiftDefaultSetting = "dateShiftDefaultSetting";
         internal const string SubstituteDefaultSetting = "substituteDefaultSetting";
-
 
     }
 }

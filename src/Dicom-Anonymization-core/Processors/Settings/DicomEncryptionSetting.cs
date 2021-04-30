@@ -2,16 +2,17 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Dicom.Anonymization.Model;
 
-namespace Dicom.Anonymization.Model
+namespace Dicom.Anonymization.Processors.Settings
 {
-    public class DicomEncryptionSetting
+    public class DicomEncryptionSetting: IDicomAnonymizationSetting
     {
         public string EncryptKey { get; set; }
 
         public EncryptFunctionTypes EncryptFunction { get; set; }
 
-        public static DicomEncryptionSetting CreateFromJsonString(string settings)
+        public IDicomAnonymizationSetting CreateFromRuleSettings(string settings)
         {
             try
             {
@@ -23,7 +24,7 @@ namespace Dicom.Anonymization.Model
             }
         }
 
-        public static DicomEncryptionSetting CreateFromJson(Dictionary<string, object> settings)
+        public IDicomAnonymizationSetting CreateFromRuleSettings(Dictionary<string, object> settings)
         {
             try
             {

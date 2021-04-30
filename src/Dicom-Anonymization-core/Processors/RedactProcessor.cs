@@ -6,42 +6,24 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Text.RegularExpressions;
-using CSJ2K.j2k.quantization.dequantizer;
 using De_Id_Function_Shared;
-using De_Id_Function_Shared.Model;
-using De_Id_Function_Shared.Settings;
-using Dicom;
-using Dicom.Anonymization.AnonymizationConfigurations;
-using Dicom.Anonymization.Model;
-using Newtonsoft.Json;
+using Dicom.Anonymization.Processors.Settings;
 
 namespace Dicom.Anonymization.Processors
 {
     public class RedactProcessor : IAnonymizationProcessor
     {
+        private DicomRedactSetting _defaultRedactFunction;
+
         public RedactProcessor(DicomRedactSetting defaultRedactSettings)
         {
-            DefaultRedactSettings = defaultRedactSettings;
-            DefaultRedactFunction = new RedactFunction(DefaultRedactSettings);
+            _defaultRedactFunction = defaultRedactSettings;
         }
 
-        public DicomRedactSetting DefaultRedactSettings;
-
-        public RedactFunction DefaultRedactFunction { get; set; }
-
-        public void Process(DicomDataset dicomDataset, DicomItem item, Dictionary<string, object> settings = null)
+        public void Process(DicomDataset dicomDataset, DicomItem item, IDicomAnonymizationSetting settings = null)
         {
-            // var values = Utility.SplitValues(Encoding.UTF8.GetString(((DicomElement)item).Buffer.Data));
-            var redactFunction = DefaultRedactFunction;
-            var redactSetting = DefaultRedactSettings;
-            if (settings != null)
-            {
-                redactFunction = new RedactFunction(DicomRedactSetting.CreateFromJson(settings));
-            }
+            var redactSettings = settings == null ? _defaultRedactFunction : (DicomRedactSetting)settings;
+            var redactFunction = new RedactFunction(redactSettings);
 
             var redactedValues = new List<string>() { };
             if (item.ValueRepresentation == DicomVR.AS)
@@ -89,20 +71,12 @@ namespace Dicom.Anonymization.Processors
                 return;
             }
 
-            /*
-            if (item.ValueRepresentation == DicomVR.OB)
-            {
-                dicomDataset.AddOrUpdate<string>(DicomVR.OB, item.Tag);
-                return;
-            }
-            */
             if (redactedValues.Count() != 0)
             {
                 dicomDataset.AddOrUpdate(item.ValueRepresentation, item.Tag, redactedValues.ToArray());
             }
             else
             {
-                // dicomDataset.AddOrUpdate<string>(item.Tag, encoding: null, null);
                 dicomDataset.AddOrUpdate<string>(item.ValueRepresentation, item.Tag, values: null);
             }
         }

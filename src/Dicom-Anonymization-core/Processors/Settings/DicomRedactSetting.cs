@@ -3,17 +3,15 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
-namespace Dicom.Anonymization.Model
+namespace Dicom.Anonymization.Processors.Settings
 {
-    public class DicomSubstituteSetting
+    public class DicomRedactSetting : RedactSetting, IDicomAnonymizationSetting
     {
-        public string ReplaceWith { get; set; }
-
-        public static DicomSubstituteSetting CreateFromJsonString(string settings)
+        public IDicomAnonymizationSetting CreateFromRuleSettings(string settings)
         {
             try
             {
-                return JsonConvert.DeserializeObject<DicomSubstituteSetting>(settings);
+                return JsonConvert.DeserializeObject<DicomRedactSetting>(settings);
             }
             catch (Exception ex)
             {
@@ -21,11 +19,11 @@ namespace Dicom.Anonymization.Model
             }
         }
 
-        public static DicomSubstituteSetting CreateFromJson(Dictionary<string, object> settings)
+        public IDicomAnonymizationSetting CreateFromRuleSettings(Dictionary<string, object> settings)
         {
             try
             {
-                return JsonConvert.DeserializeObject<DicomSubstituteSetting>(JsonConvert.SerializeObject(settings));
+                return JsonConvert.DeserializeObject<DicomRedactSetting>(JsonConvert.SerializeObject(settings));
             }
             catch (Exception ex)
             {

@@ -19,7 +19,7 @@ namespace Dicom.Anonymization
         {
             configuration.GenerateSettings();
             _configuration = configuration;
-            DicomTagRules = _configuration.DicomTagRules.Select(entry => AnonymizationDicomTagRule.CreateAnonymizationDICOMRule(entry, _configuration.AllSettings)).ToArray();
+            DicomTagRules = _configuration.DicomTagRules?.Select(entry => AnonymizationDicomTagRule.CreateAnonymizationDicomRule(entry, _configuration)).ToArray();
             // DicomVRRules = _configuration.DicomVRRules.Select(entry => AnonymizationDicomTagRule.CreateAnonymizationFhirPathRule(entry)).ToArray();
         }
 
@@ -27,12 +27,7 @@ namespace Dicom.Anonymization
         {
             try
             {
-                JsonLoadSettings settings = new JsonLoadSettings
-                {
-                    DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error
-                };
-                var token = JToken.Parse(settingsInJson, settings);
-                var configuration = token.ToObject<AnonymizationConfiguration>();
+                var configuration = JsonConvert.DeserializeObject<AnonymizationConfiguration>(settingsInJson);
                 return new AnonymizationConfigurationManager(configuration);
             }
             catch (JsonException innerException)
@@ -55,9 +50,9 @@ namespace Dicom.Anonymization
             }
         }
 
-        public Dictionary<string, object> GetSettings()
+        public AnonymizationDefaultSettings GetDefaultSettings()
         {
-            return _configuration.AllSettings;
+            return _configuration.DefaultSettings;
         }
 
     }

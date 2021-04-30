@@ -7,37 +7,42 @@ using System.Linq;
 using System.Text;
 using FellowOakDicom.IO;
 using Dicom.IO.Buffer;
+using EnsureThat;
+using Dicom.Anonymization.Processors.Settings;
 
 namespace Dicom.Anonymization.Processors
 {
     public class CryptoHashProcessor : IAnonymizationProcessor
     {
-        private readonly byte[] _cryptoHashKey;
-        private readonly Func<string, string> _cryptoHashFunction;
+        private DicomCryptoHashSetting _defaultSetting;
 
         public CryptoHashProcessor(DicomCryptoHashSetting defaultSetting)
         {
-            _cryptoHashKey = Encoding.UTF8.GetBytes(defaultSetting.CryptoHashKey);
+            EnsureArg.IsNotNull(defaultSetting, nameof(defaultSetting));
+
+            _defaultSetting = defaultSetting;
         }
 
-        public void Process(DicomDataset dicomDataset, DicomItem item, Dictionary<string, object> settings = null)
+        public void Process(DicomDataset dicomDataset, DicomItem item, IDicomAnonymizationSetting settings = null)
         {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(item, nameof(item));
+
+            IsValidItemForCryptoHash(item);
+
+            var cryptoHashSetting = settings == null ? _defaultSetting : settings;
+            var cryptoHashKey = Encoding.UTF8.GetBytes(((DicomCryptoHashSetting)cryptoHashSetting).CryptoHashKey);
+
             var encoding = Encoding.UTF8;
-            if (item is DicomMultiStringElement)
+            if (item is DicomStringElement)
             {
-                var encryptedValues = ((DicomMultiStringElement)item).Get<string[]>().Select(GetCryptoHashString);
+                var encryptedValues = ((DicomStringElement)item).Get<string[]>().Select(x => GetCryptoHashString(x, cryptoHashKey));
                 dicomDataset.AddOrUpdate(item.ValueRepresentation, item.Tag, encryptedValues.ToArray());
             }
-            else if (item is DicomStringElement)
+            else if (item is DicomOtherByte)
             {
-                var value = ((DicomMultiStringElement)item).Get<string>();
-                var encryptedValue = GetCryptoHashString(value);
-                dicomDataset.AddOrUpdate(item.ValueRepresentation, item.Tag, encryptedValue);
-            }
-            else if (item is DicomElement)
-            {
-                var valueBytes = ((DicomElement)item).Get<byte[]>();
-                var encryptesBytes = CryptoHashFunction.ComputeHmacSHA256Hash(valueBytes, _cryptoHashKey);
+                var valueBytes = ((DicomOtherByte)item).Get<byte[]>();
+                var encryptesBytes = CryptoHashFunction.ComputeHmacSHA256Hash(valueBytes, cryptoHashKey);
                 dicomDataset.AddOrUpdate(item.ValueRepresentation, item.Tag, encryptesBytes);
             }
             else if (item is DicomFragmentSequence)
@@ -51,20 +56,36 @@ namespace Dicom.Anonymization.Processors
 
                 while (enumerator.MoveNext())
                 {
-                    element.Fragments.Add(new MemoryByteBuffer(CryptoHashFunction.ComputeHmacSHA256Hash(enumerator.Current.Data, _cryptoHashKey)));
+                    element.Fragments.Add(new MemoryByteBuffer(CryptoHashFunction.ComputeHmacSHA256Hash(enumerator.Current.Data, cryptoHashKey)));
                 }
 
                 dicomDataset.AddOrUpdate(element);
             }
-            else
+        }
+
+        public void IsValidItemForCryptoHash(DicomItem item)
+        {
+            if (item.ValueRepresentation.IsString)
             {
-                throw new Exception($"Invalid encryption operation for item {item}");
+                if (item.ValueRepresentation == DicomVR.UI)
+                {
+                    throw new Exception($"Invalid crypto hash operation for item {item}.");
+                }
+
+                if (item.ValueRepresentation.MaximumLength < 64 && item.ValueRepresentation.MaximumLength > 0)
+                {
+                    throw new Exception($"Invalid crypto hash operation for item {item}");
+                }
+            }
+            else if (item.ValueRepresentation != DicomVR.OB && !(item is DicomFragmentSequence))
+            {
+                throw new Exception($"Invalid crypto hash operation for item {item}");
             }
         }
 
-        public string GetCryptoHashString(string input)
+        public string GetCryptoHashString(string input, byte[] cryptoHashKey)
         {
-            var resultBytes = CryptoHashFunction.ComputeHmacSHA256Hash(Encoding.UTF8.GetBytes(input), _cryptoHashKey);
+            var resultBytes = CryptoHashFunction.ComputeHmacSHA256Hash(Encoding.UTF8.GetBytes(input), cryptoHashKey);
             return resultBytes == null ? null : string.Concat(resultBytes.Select(b => b.ToString("x2")));
         }
     }

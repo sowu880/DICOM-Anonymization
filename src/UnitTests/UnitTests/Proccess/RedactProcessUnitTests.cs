@@ -1,6 +1,9 @@
 ﻿using Dicom;
 using Dicom.Anonymization.Model;
 using Dicom.Anonymization.Processors;
+using Dicom.IO.Buffer;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -8,6 +11,12 @@ namespace UnitTests
 {
     public class RedactProcessUnitTests
     {
+        public RedactProcessUnitTests()
+        {
+            Processor = new RedactProcessor(new DicomRedactSetting() { EnablePartialDatesForRedact = false });
+        }
+
+        RedactProcessor Processor { get; set; }
 
         [Fact]
         public void GivenADataSetWithDTItem_WhenRedactWithPartialRedact_ValueWillBePartialRedact()
@@ -23,10 +32,9 @@ namespace UnitTests
 
             var itemList = dataset.ToArray();
 
-            var redactProcess = new RedactProcessor(new DicomRedactSetting() { EnablePartialDatesForRedact = true });
             foreach (var item in itemList)
             {
-                redactProcess.Process(dataset, item);
+                Processor.Process(dataset, item, new Dictionary<string, object>() { { "EnablePartialDatesForRedact", true } });
             }
 
             Assert.Equal("20210101000000.000000+0800", dataset.GetDicomItem<DicomElement>(tag1).Get<string>());
@@ -48,10 +56,9 @@ namespace UnitTests
 
             var itemList = dataset.ToArray();
 
-            var redactProcess = new RedactProcessor(new DicomRedactSetting() { EnablePartialDatesForRedact = true });
             foreach (var item in itemList)
             {
-                redactProcess.Process(dataset, item);
+                Processor.Process(dataset, item, new Dictionary<string, object>() { { "EnablePartialDatesForRedact", true } });
             }
 
             Assert.Equal("20210101", dataset.GetDicomItem<DicomElement>(tag1).Get<string>());
@@ -72,10 +79,9 @@ namespace UnitTests
 
             var itemList = dataset.ToArray();
 
-            var redactProcess = new RedactProcessor(new DicomRedactSetting() { EnablePartialAgeForRedact = true });
             foreach (var item in itemList)
             {
-                redactProcess.Process(dataset, item);
+                Processor.Process(dataset, item, new Dictionary<string, object>() { { "enablePartialAgeForRedact", true } });
             }
 
             Assert.Equal(string.Empty, dataset.GetDicomItem<DicomElement>(tag1).Get<string>());
@@ -105,12 +111,25 @@ namespace UnitTests
 
             var itemList = dataset.ToArray();
 
-            var redactProcess = new RedactProcessor(new DicomRedactSetting() { EnablePartialDatesForRedact = false });
             foreach (var item in itemList)
             {
-                redactProcess.Process(dataset, item);
+                Processor.Process(dataset, item);
                 Assert.Equal(string.Empty, dataset.GetDicomItem<DicomElement>(item.Tag).Get<string>());
             }
+        }
+
+        [Fact]
+        public void GivenADataSetWithDicomFragmentSequence_WhenRedact_ValueWillBeRedact()
+        {
+            var tag = DicomTag.PixelData;
+            var item = new DicomOtherByteFragment(tag);
+            item.Fragments.Add(new MemoryByteBuffer(Convert.FromBase64String("fragment")));
+            item.Fragments.Add(new MemoryByteBuffer(Convert.FromBase64String("fragment")));
+
+            var dataset = new DicomDataset(item);
+
+            Processor.Process(dataset, item);
+            Assert.Equal(new byte[] { }, dataset.GetDicomItem<DicomElement>(tag).Get<byte[]>());
         }
 
         [Fact]

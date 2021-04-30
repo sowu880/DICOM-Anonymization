@@ -9,23 +9,19 @@ using System.Linq;
 using De_Id_Function_Shared;
 using De_Id_Function_Shared.Settings;
 using Dicom.Anonymization.AnonymizationConfigurations;
-using Dicom.Anonymization.Model;
+using Dicom.Anonymization.Processors.Settings;
+using EnsureThat;
 
 namespace Dicom.Anonymization.Processors
 {
     public class DateShiftProcessor : IAnonymizationProcessor
     {
+        private DicomDateShiftSetting _defaultSetting;
+
         public DateShiftProcessor(DicomDateShiftSetting defaultSetting)
         {
-            DefaultDateShiftFunction = CreateDateShiftFunction(defaultSetting);
-            DefaultDateShiftScope = defaultSetting.DateShiftScope;
+            _defaultSetting = defaultSetting;
         }
-
-        public DateShiftScope DefaultDateShiftScope { get; set; }
-
-        public DicomDateShiftSetting DefaultSetting { get; set; }
-
-        public DateShiftFunction DefaultDateShiftFunction { get; set; }
 
         public DateShiftFunction CreateDateShiftFunction(DicomDateShiftSetting setting)
         {
@@ -36,28 +32,32 @@ namespace Dicom.Anonymization.Processors
             });
         }
 
-        public void Process(DicomDataset dicomDataset, DicomItem item, Dictionary<string, object> settings = null)
+        public void Process(DicomDataset dicomDataset, DicomItem item, IDicomAnonymizationSetting settings = null)
         {
-            DateShiftFunction dateShiftFunction = DefaultDateShiftFunction;
-            DateShiftScope dateShiftScope = DefaultDateShiftScope;
-            if (settings != null)
-            {
-                var dateShiftSetting = DicomDateShiftSetting.CreateFromJson(settings);
-                dateShiftFunction = CreateDateShiftFunction(dateShiftSetting);
-                dateShiftScope = dateShiftSetting.DateShiftScope;
-            }
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(item, nameof(item));
 
-            if (dateShiftScope == DateShiftScope.StudyInstance)
+            var dateShiftSetting = settings == null ? _defaultSetting : settings;
+            var dateShiftFunction = CreateDateShiftFunction((DicomDateShiftSetting)dateShiftSetting);
+            var dateShiftScope = ((DicomDateShiftSetting)dateShiftSetting).DateShiftScope;
+            try
             {
-                dateShiftFunction.DateShiftKeyPrefix = dicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+                if (dateShiftScope == DateShiftScope.StudyInstance)
+                {
+                    dateShiftFunction.DateShiftKeyPrefix = dicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+                }
+                else if (dateShiftScope == DateShiftScope.SeriesInstance)
+                {
+                    dateShiftFunction.DateShiftKeyPrefix = dicomDataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+                }
+                else if (dateShiftScope == DateShiftScope.SopInstance)
+                {
+                    dateShiftFunction.DateShiftKeyPrefix = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+                }
             }
-            else if (dateShiftScope == DateShiftScope.SeriesInstance)
+            catch
             {
-                dateShiftFunction.DateShiftKeyPrefix = dicomDataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
-            }
-            else if (dateShiftScope == DateShiftScope.SopInstance)
-            {
-                dateShiftFunction.DateShiftKeyPrefix = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+                dateShiftFunction.DateShiftKeyPrefix = string.Empty;
             }
 
             if (item.ValueRepresentation == DicomVR.DA)
@@ -77,8 +77,6 @@ namespace Dicom.Anonymization.Processors
                     {
                         results.Add(Utility.GenerateDicomDateTimeString(dateObject));
                     }
-
-                    results.Add(value);
                 }
 
                 dicomDataset.AddOrUpdate(item.ValueRepresentation, item.Tag, results.ToArray());

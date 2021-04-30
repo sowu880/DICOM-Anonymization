@@ -1,26 +1,31 @@
-﻿using De_Id_Function_Shared;
-using Dicom.Anonymization.Model;
-using EnsureThat;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using FellowOakDicom.IO;
-using System.Text;
+using De_Id_Function_Shared;
+using Dicom.Anonymization.Processors.Settings;
+using EnsureThat;
 
 namespace Dicom.Anonymization.Processors
 {
     public class PerturbProcessor : IAnonymizationProcessor
     {
-        public PerturbProcessor(DicomPerturbSetting defaultSetting = null)
+        private DicomPerturbSetting _defaultSetting;
+
+        public PerturbProcessor(DicomPerturbSetting defaultSetting)
         {
-            DefaultSetting = defaultSetting;
+            EnsureArg.IsNotNull(defaultSetting, nameof(defaultSetting));
+
+            _defaultSetting = defaultSetting;
         }
 
-        public DicomPerturbSetting DefaultSetting { get; set; }
-
-        public void Process(DicomDataset dicomDataset, DicomItem item, Dictionary<string, object> settings = null)
+        public void Process(DicomDataset dicomDataset, DicomItem item, IDicomAnonymizationSetting settings = null)
         {
-            var perturbSetting = settings == null ? DefaultSetting : CreatePertubSettings(settings);
+            var perturbSetting = settings == null ? _defaultSetting : (DicomPerturbSetting)settings;
             var perturbedValues = new List<decimal>() { };
 
             if (item.ValueRepresentation == DicomVR.AS)
@@ -45,12 +50,12 @@ namespace Dicom.Anonymization.Processors
             }
             else if (item.ValueRepresentation == DicomVR.FD)
             {
-                var values = ((DicomFloatingPointSingle)item).Get<double[]>().Select(x => PerturbFunction.Perturb(x, perturbSetting));
+                var values = ((DicomFloatingPointDouble)item).Get<double[]>().Select(x => PerturbFunction.Perturb(x, perturbSetting));
                 dicomDataset.AddOrUpdate(item.ValueRepresentation, item.Tag, values.ToArray());
             }
             else if (item.ValueRepresentation == DicomVR.OD)
             {
-                var values = ((DicomFloatingPointSingle)item).Get<double[]>().Select(x => PerturbFunction.Perturb(x, perturbSetting));
+                var values = ((DicomOtherDouble)item).Get<double[]>().Select(x => PerturbFunction.Perturb(x, perturbSetting));
                 dicomDataset.AddOrUpdate(item.ValueRepresentation, item.Tag, values.ToArray());
             }
             else if (item.ValueRepresentation == DicomVR.IS)
@@ -77,7 +82,7 @@ namespace Dicom.Anonymization.Processors
             {
                 if (item is DicomOtherWordFragment)
                 {
-                    Console.WriteLine($"Invalid perturb operation for item {item}");
+                    throw new Exception($"Invalid perturb operation for item {item}");
                 }
                 else
                 {
@@ -114,39 +119,6 @@ namespace Dicom.Anonymization.Processors
             {
                 throw new Exception($"Invalid perturb operation for item {item}");
             }
-        }
-
-        public PerturbSetting CreatePertubSettings(Dictionary<string, object> ruleSettings)
-        {
-            EnsureArg.IsNotNull(ruleSettings);
-
-            var roundTo = 2;
-            if (ruleSettings.ContainsKey(RuleKeys.RoundTo))
-            {
-                roundTo = Convert.ToInt32(ruleSettings.GetValueOrDefault(RuleKeys.RoundTo)?.ToString());
-            }
-
-            double span = 0;
-            if (ruleSettings.ContainsKey(RuleKeys.Span))
-            {
-                span = Convert.ToDouble(ruleSettings.GetValueOrDefault(RuleKeys.Span)?.ToString());
-            }
-
-            var rangeType = PerturbRangeType.Fixed;
-            if (string.Equals(
-                PerturbRangeType.Proportional.ToString(),
-                ruleSettings.GetValueOrDefault(RuleKeys.RangeType)?.ToString(),
-                StringComparison.InvariantCultureIgnoreCase))
-            {
-                rangeType = PerturbRangeType.Proportional;
-            }
-
-            return new PerturbSetting
-            {
-                Span = span,
-                RangeType = rangeType,
-                RoundTo = roundTo,
-            };
         }
     }
 }

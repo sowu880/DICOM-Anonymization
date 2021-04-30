@@ -54,6 +54,14 @@ namespace De_Id_Function_Shared
             return Math.Round(value + noise, perturbSetting.RoundTo);
         }
 
+        public static float Perturb(float value, PerturbSetting perturbSetting)
+        {
+            EnsureArg.IsNotNull(perturbSetting, nameof(perturbSetting));
+
+            var noise = Noise(value, perturbSetting);
+            return (float)Math.Round(value + noise, perturbSetting.RoundTo);
+        }
+
         public static int Perturb(int value, PerturbSetting perturbSetting)
         {
             EnsureArg.IsNotNull(perturbSetting, nameof(perturbSetting));

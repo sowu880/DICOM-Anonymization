@@ -21,7 +21,7 @@ namespace Dicom.Anonymization
     {
         private readonly Dictionary<string, IAnonymizationProcessor> _processors = new Dictionary<string, IAnonymizationProcessor> { };
         private readonly AnonymizationDicomTagRule[] _rulesByTag;
-        private readonly AnonymizationRule[] _rulesByVR;
+        private readonly AnonymizationDefaultSettings _defaultSettings;
 
         public AnonymizationEngine(string configFilePath = "configuration-sample.json")
         {
@@ -74,6 +74,7 @@ namespace Dicom.Anonymization
 
                         originalValue = "sequence";
                     }
+
                     Console.WriteLine(item.Tag.ToString(),item.ValueRepresentation);
                     _processors[method].Process(dataset, item, ruleByTag.RuleSetting);
                     // Console.WriteLine("{0,-15}{1,-40}{2,-15}{3,-50}{4,-75}","("+string.Format("{0,4:X4}",item.Tag.Group)+","+string.Format("{0,4:X4}", item.Tag.Element)+")", item.Tag.DictionaryEntry.Name, method, originalValue, dataset.GetSingleValueOrDefault<string>(item.Tag, string.Empty));
@@ -84,15 +85,15 @@ namespace Dicom.Anonymization
 
         private void InitializeProcessors(AnonymizationConfigurationManager configurationManager)
         {
-            _processors.Add(AnonymizationMethod.Redact.ToString().ToUpperInvariant(), new RedactProcessor(DicomRedactSetting.CreateFromJsonString(configurationManager.GetSettings().GetValueOrDefault(Constants.RedactDefaultSetting).ToString())));
+            _processors.Add(AnonymizationMethod.Redact.ToString().ToUpperInvariant(), new RedactProcessor(_defaultSettings.RedactDefaultSetting));
             _processors.Add(AnonymizationMethod.Keep.ToString().ToUpperInvariant(), new KeepProcessor());
             _processors.Add(AnonymizationMethod.Remove.ToString().ToUpperInvariant(), new RemoveProcessor());
             _processors.Add(AnonymizationMethod.RefreshUID.ToString().ToUpperInvariant(), new RefreshUIDProcessor());
-            _processors.Add(AnonymizationMethod.Substitute.ToString().ToUpperInvariant(), new SubstituteProcessor(DicomSubstituteSetting.CreateFromJsonString(configurationManager.GetSettings().GetValueOrDefault(Constants.SubstituteDefaultSetting).ToString())));
-            _processors.Add(AnonymizationMethod.Perturb.ToString().ToUpperInvariant(), new PerturbProcessor(DicomPerturbSetting.CreateFromJsonString(configurationManager.GetSettings().GetValueOrDefault(Constants.PerturbDefaultSetting).ToString())));
-            _processors.Add(AnonymizationMethod.Encrypt.ToString().ToUpperInvariant(), new EncryptionProcessor(DicomEncryptionSetting.CreateFromJsonString(configurationManager.GetSettings().GetValueOrDefault(Constants.EncryptDefaultSetting).ToString())));
-            _processors.Add(AnonymizationMethod.CryptoHash.ToString().ToUpperInvariant(), new CryptoHashProcessor(DicomCryptoHashSetting.CreateFromJsonString(configurationManager.GetSettings().GetValueOrDefault(Constants.CryptoHashDefaultSetting).ToString())));
-            _processors.Add(AnonymizationMethod.DateShift.ToString().ToUpperInvariant(), new DateShiftProcessor(DicomDateShiftSetting.CreateFromJsonString(configurationManager.GetSettings().GetValueOrDefault(Constants.DateShiftDefaultSetting).ToString())));
+            _processors.Add(AnonymizationMethod.Substitute.ToString().ToUpperInvariant(), new SubstituteProcessor(_defaultSettings.SubstituteDefaultSetting));
+            _processors.Add(AnonymizationMethod.Perturb.ToString().ToUpperInvariant(), new PerturbProcessor(_defaultSettings.PerturbDefaultSetting));
+            _processors.Add(AnonymizationMethod.Encrypt.ToString().ToUpperInvariant(), new EncryptionProcessor(_defaultSettings.EncryptDefaultSetting));
+            _processors.Add(AnonymizationMethod.CryptoHash.ToString().ToUpperInvariant(), new CryptoHashProcessor(_defaultSettings.CryptoHashDefaultSetting));
+            _processors.Add(AnonymizationMethod.DateShift.ToString().ToUpperInvariant(), new DateShiftProcessor(_defaultSettings.DateShiftDefaultSetting));
         }
     }
 }

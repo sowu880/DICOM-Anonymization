@@ -44,7 +44,7 @@ namespace Dicom.Anonymization
                 int timeZoneMinute = int.Parse(groups["timeZoneMinute"].Value);
                 return new DateTimeObject()
                 {
-                    DateValue = new DateTimeOffset(year, month, day, hour, minute, second, millisecond, new TimeSpan(timeZoneHour, timeZoneMinute, 0)),
+                    DateValue = new DateTimeOffset(year, month, day, hour, minute, second, millisecond > 999 ? int.Parse(millisecond.ToString().Substring(0,3)) : millisecond, new TimeSpan(timeZoneHour, timeZoneMinute, 0)),
                     HasTimeZone = true,
                 };
             }

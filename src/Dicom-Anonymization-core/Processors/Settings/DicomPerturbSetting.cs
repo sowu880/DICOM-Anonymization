@@ -3,14 +3,15 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Dicom.Anonymization.Model;
 
-namespace Dicom.Anonymization.Model
+namespace Dicom.Anonymization.Processors.Settings
 {
-    public class DicomPerturbSetting : PerturbSetting
+    public class DicomPerturbSetting : PerturbSetting, IDicomAnonymizationSetting
     {
         public PerturbDistribution Distribution { get; set; }
 
-        public static DicomPerturbSetting CreateFromJsonString(string settings)
+        public IDicomAnonymizationSetting CreateFromRuleSettings(string settings)
         {
             try
             {
@@ -22,7 +23,7 @@ namespace Dicom.Anonymization.Model
             }
         }
 
-        public static DicomPerturbSetting CreateFromJson(Dictionary<string, object> settings)
+        public IDicomAnonymizationSetting CreateFromRuleSettings(Dictionary<string, object> settings)
         {
             try
             {

@@ -42,7 +42,7 @@ namespace De_Id_Function_Shared
                 throw new DeIDFunctionException();
             }
 
-            return date.AddDays(DateShiftOffset).ToString(outputFormat);
+            return date.AddDays(GetDateShiftValue()).ToString(outputFormat);
         }
 
         public string ShiftDateTime(string inputString, string inputDateTimeFormat = null, string outputDateTimeFormat = null, IFormatProvider provider = null)
@@ -56,14 +56,14 @@ namespace De_Id_Function_Shared
             }
 
             DateTimeOffset newDateTime = new DateTimeOffset(date.Year, date.Month, date.Day, 0, 0, 0, date.Offset);
-            return newDateTime.AddDays(DateShiftOffset).ToString(outputFormat);
+            return newDateTime.AddDays(GetDateShiftValue()).ToString(outputFormat);
         }
 
 
         public DateTimeOffset ShiftDateTime(DateTimeOffset dateTime)
         {
             DateTimeOffset newDateTime = new DateTimeOffset(dateTime.Year, dateTime.Month, dateTime.Day, 0, 0, 0, dateTime.Offset);
-            return newDateTime.AddDays(DateShiftOffset);
+            return newDateTime.AddDays(GetDateShiftValue());
         }
 
         private int GetDateShiftValue()

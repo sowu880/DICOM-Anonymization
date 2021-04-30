@@ -1,12 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
+using Dicom.Anonymization.Processors.Settings;
 
 namespace Dicom.Anonymization.Processors
 {
     public class RemoveProcessor : IAnonymizationProcessor
     {
-        public void Process(DicomDataset dicomDataset, DicomItem item, Dictionary<string, object> settings = null)
+        public void Process(DicomDataset dicomDataset, DicomItem item, IDicomAnonymizationSetting settings = null)
         {
             dicomDataset.Remove(item.Tag);
         }
