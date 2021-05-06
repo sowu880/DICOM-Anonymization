@@ -13,9 +13,9 @@ using Newtonsoft.Json;
 
 namespace Dicom.Anonymization.Processors.Settings
 {
-    public class DicomEncryptionSetting: IDicomAnonymizationSetting
+    public class DicomEncryptionSetting : IDicomAnonymizationSetting
     {
-        public string EncryptKey { get; set; }
+        public string EncryptKey { get; set; } = Guid.NewGuid().ToString("N");
 
         public EncryptFunctionTypes EncryptFunction { get; set; }
 

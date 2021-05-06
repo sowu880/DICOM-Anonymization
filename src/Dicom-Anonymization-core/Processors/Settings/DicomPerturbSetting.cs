@@ -14,7 +14,7 @@ namespace Dicom.Anonymization.Processors.Settings
 {
     public class DicomPerturbSetting : PerturbSetting, IDicomAnonymizationSetting
     {
-        public PerturbDistribution Distribution { get; set; }
+        public PerturbDistribution Distribution { get; set; } = PerturbDistribution.Uniform;
 
         public IDicomAnonymizationSetting CreateFromRuleSettings(string settings)
         {

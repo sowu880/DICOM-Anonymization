@@ -27,7 +27,7 @@ namespace Dicom.Anonymization.Processors
             _defaultSetting = defaultSetting;
         }
 
-        public void Process(DicomDataset dicomDataset, DicomItem item, IDicomAnonymizationSetting settings = null)
+        public void Process(DicomDataset dicomDataset, DicomItem item, DicomBasicInformation basicInfo = null, IDicomAnonymizationSetting settings = null)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             EnsureArg.IsNotNull(item, nameof(item));

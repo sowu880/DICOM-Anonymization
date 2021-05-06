@@ -3,18 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using De_Id_Function_Shared.Settings;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Dicom.Anonymization.AnonymizationConfigurations;
 using Dicom.Anonymization.Model;
 using Dicom.Anonymization.Processors;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using FellowOakDicom.IO;
-using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace Dicom.Anonymization
 {
@@ -23,13 +18,11 @@ namespace Dicom.Anonymization
         private readonly Dictionary<string, IAnonymizationProcessor> _processors = new Dictionary<string, IAnonymizationProcessor> { };
         private readonly AnonymizationDicomTagRule[] _rulesByTag;
         private readonly AnonymizationDefaultSettings _defaultSettings;
+        private readonly ILogger _logger = AnonymizerLogging.CreateLogger<AnonymizationEngine>();
 
         public AnonymizationEngine(string configFilePath = "configuration-sample.json")
+            : this(AnonymizationConfigurationManager.CreateFromConfigurationFile(configFilePath))
         {
-            var configurationManager = AnonymizationConfigurationManager.CreateFromConfigurationFile(configFilePath);
-            _defaultSettings = configurationManager.GetDefaultSettings();
-            InitializeProcessors(configurationManager);
-            _rulesByTag = configurationManager.DicomTagRules;
         }
 
         public AnonymizationEngine(AnonymizationConfigurationManager configurationManager)
@@ -37,15 +30,18 @@ namespace Dicom.Anonymization
             _defaultSettings = configurationManager.GetDefaultSettings();
             InitializeProcessors(configurationManager);
             _rulesByTag = configurationManager.DicomTagRules;
+
+            _logger.LogDebug("AnonymizerEngine initialized successfully");
         }
 
         public void Anonymize(DicomDataset dataset)
         {
+            var basicInfo = ExtractBasicInformation(dataset);
             var curDataset = dataset.ToArray();
             foreach (var item in curDataset)
             {
                 var ruleByTag = _rulesByTag?.Where(r => string.Equals(item.Tag.DictionaryEntry.Keyword, r.Tag?.DictionaryEntry.Keyword, StringComparison.CurrentCultureIgnoreCase)
-                || string.Equals(item.ValueRepresentation.Code, r.VR?.Code, StringComparison.InvariantCultureIgnoreCase) 
+                || string.Equals(item.ValueRepresentation.Code, r.VR?.Code, StringComparison.InvariantCultureIgnoreCase)
                 || (r.IsMasked && r.MaskedTag.IsMatch(item.Tag))).FirstOrDefault();
                 if (ruleByTag != null)
                 {
@@ -55,23 +51,30 @@ namespace Dicom.Anonymization
                         continue;
                     }
 
-                    string originalValue;
-                    if (item is DicomElement)
+                    try
                     {
-                        originalValue = ((DicomElement)item).Get<string>();
+                        _processors[method].Process(dataset, item, basicInfo, ruleByTag.RuleSetting);
+                        _logger.LogDebug("{0,-15}{1,-40}{2,-15}{3,-50}{4,-75}", "(" + string.Format("{0,4:X4}", item.Tag.Group) + "," + string.Format("{0,4:X4}", item.Tag.Element) + ")", item.Tag.DictionaryEntry.Name, method, item is DicomElement ? ((DicomElement)item).Get<string>() : "sequence", dataset.GetSingleValueOrDefault<string>(item.Tag, string.Empty));
                     }
-                    else
+                    catch (Exception ex)
                     {
-
-                        originalValue = "sequence";
+                        _logger.LogWarning($"Fail to anonymize Item {item.Tag.DictionaryEntry.Name} using {method} method. The original value will be kept.", ex);
                     }
 
-                    Console.WriteLine(item.Tag.ToString(),item.ValueRepresentation);
-                    _processors[method].Process(dataset, item, ruleByTag.RuleSetting);
-                    // Console.WriteLine("{0,-15}{1,-40}{2,-15}{3,-50}{4,-75}","("+string.Format("{0,4:X4}",item.Tag.Group)+","+string.Format("{0,4:X4}", item.Tag.Element)+")", item.Tag.DictionaryEntry.Name, method, originalValue, dataset.GetSingleValueOrDefault<string>(item.Tag, string.Empty));
                     continue;
                 }
             }
+        }
+
+        private DicomBasicInformation ExtractBasicInformation(DicomDataset dataset)
+        {
+            var basicInfo = new DicomBasicInformation
+            {
+                StudyInstanceUID = dataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
+                SopInstanceUID = dataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
+                SeriesInstanceUID = dataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
+            };
+            return basicInfo;
         }
 
         private void InitializeProcessors(AnonymizationConfigurationManager configurationManager)

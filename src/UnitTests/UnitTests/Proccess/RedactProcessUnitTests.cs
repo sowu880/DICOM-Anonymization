@@ -40,7 +40,7 @@ namespace UnitTests
 
             foreach (var item in itemList)
             {
-                Processor.Process(dataset, item, new DicomRedactSetting { EnablePartialDatesForRedact = true });
+                Processor.Process(dataset, item, null, new DicomRedactSetting { EnablePartialDatesForRedact = true });
             }
 
             Assert.Equal("20210101000000.000000+0800", dataset.GetDicomItem<DicomElement>(tag1).Get<string>());
@@ -64,7 +64,7 @@ namespace UnitTests
 
             foreach (var item in itemList)
             {
-                Processor.Process(dataset, item, new DicomRedactSetting { EnablePartialDatesForRedact = true });
+                Processor.Process(dataset, item, null, new DicomRedactSetting { EnablePartialDatesForRedact = true });
             }
 
             Assert.Equal("20210101", dataset.GetDicomItem<DicomElement>(tag1).Get<string>());
@@ -87,7 +87,7 @@ namespace UnitTests
 
             foreach (var item in itemList)
             {
-                Processor.Process(dataset, item, new DicomRedactSetting { EnablePartialAgeForRedact = true });
+                Processor.Process(dataset, item, null, new DicomRedactSetting { EnablePartialAgeForRedact = true });
             }
 
             Assert.Equal(string.Empty, dataset.GetDicomItem<DicomElement>(tag1).Get<string>());

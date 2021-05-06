@@ -42,23 +42,16 @@ namespace Dicom.Anonymization.AnonymizationConfigurations
 
         public IDicomAnonymizationSetting GetDefaultSetting(string method)
         {
-            switch (method)
+            return method switch
             {
-                case "perturb":
-                    return PerturbDefaultSetting;
-                case "substitute":
-                    return SubstituteDefaultSetting;
-                case "dateshift":
-                    return DateShiftDefaultSetting;
-                case "encrypt":
-                    return EncryptDefaultSetting;
-                case "cryptohash":
-                    return CryptoHashDefaultSetting;
-                case "redact":
-                    return RedactDefaultSetting;
-                default:
-                    return null;
-            }
+                "perturb" => PerturbDefaultSetting,
+                "substitute" => SubstituteDefaultSetting,
+                "dateshift" => DateShiftDefaultSetting,
+                "encrypt" => EncryptDefaultSetting,
+                "cryptohash" => CryptoHashDefaultSetting,
+                "redact" => RedactDefaultSetting,
+                _ => null,
+            };
         }
     }
 }

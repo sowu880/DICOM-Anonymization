@@ -1,4 +1,11 @@
-﻿using Dicom;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+using Dicom;
 using Dicom.Anonymization;
 using Dicom.Anonymization.AnonymizationConfigurations;
 using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
@@ -6,10 +13,6 @@ using Dicom.Anonymization.Model;
 using Dicom.Anonymization.Processors;
 using Dicom.Anonymization.Processors.Settings;
 using Dicom.IO.Buffer;
-using Microsoft.Extensions.Primitives;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 
 namespace UnitTests
@@ -70,7 +73,7 @@ namespace UnitTests
                 { tag, value },
             };
 
-            Assert.Throws<AnonymizationOperationException>(() => Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag)));
+            Assert.Throws<AnonymizationOperationException>(() => Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), ExtractBasicInformation(dataset)));
         }
 
         [Theory]
@@ -85,8 +88,8 @@ namespace UnitTests
                 { tag, value },
             };
 
-            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), new DicomDateShiftSetting(){ DateShiftKey = "123" , DateShiftScope = DateShiftScope.SopInstance });
-            Assert.InRange( Utility.ParseDicomDate( dataset.GetDicomItem<DicomElement>(tag).Get<string>()), Utility.ParseDicomDate(minExpectedValue), Utility.ParseDicomDate(maxExpectedValue));
+            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), ExtractBasicInformation(dataset), new DicomDateShiftSetting(){ DateShiftKey = "123", DateShiftScope = DateShiftScope.SopInstance });
+            Assert.InRange(Utility.ParseDicomDate(dataset.GetDicomItem<DicomElement>(tag).Get<string>()), Utility.ParseDicomDate(minExpectedValue), Utility.ParseDicomDate(maxExpectedValue));
         }
 
         [Theory]
@@ -101,7 +104,7 @@ namespace UnitTests
                 { tag, value },
             };
 
-            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), new DicomDateShiftSetting() { DateShiftKey = "123", DateShiftScope = DateShiftScope.SeriesInstance });
+            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), ExtractBasicInformation(dataset), new DicomDateShiftSetting() { DateShiftKey = "123", DateShiftScope = DateShiftScope.SeriesInstance });
             Assert.InRange(Utility.ParseDicomDateTime(dataset.GetDicomItem<DicomElement>(tag).Get<string>()).DateValue, Utility.ParseDicomDateTime(minExpectedValue).DateValue, Utility.ParseDicomDateTime(maxExpectedValue).DateValue);
         }
 
@@ -115,7 +118,7 @@ namespace UnitTests
 
             var dataset = new DicomDataset(item);
 
-            Assert.Throws<AnonymizationOperationException>(() => Processor.Process(dataset, item));
+            Assert.Throws<AnonymizationOperationException>(() => Processor.Process(dataset, item, ExtractBasicInformation(dataset)));
         }
 
         [Fact]
@@ -131,7 +134,18 @@ namespace UnitTests
             sps2.Add(new DicomSequence(DicomTag.ScheduledProtocolCodeSequence, spcs3));
             dataset.Add(new DicomSequence(DicomTag.ScheduledProcedureStepSequence, sps1, sps2));
 
-            Assert.Throws<AnonymizationOperationException>(() => Processor.Process(dataset, dataset.GetDicomItem<DicomItem>(DicomTag.ScheduledProcedureStepSequence)));
+            Assert.Throws<AnonymizationOperationException>(() => Processor.Process(dataset, dataset.GetDicomItem<DicomItem>(DicomTag.ScheduledProcedureStepSequence), ExtractBasicInformation(dataset)));
+        }
+
+        private DicomBasicInformation ExtractBasicInformation(DicomDataset dataset)
+        {
+            var basicInfo = new DicomBasicInformation
+            {
+                StudyInstanceUID = dataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
+                SopInstanceUID = dataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
+                SeriesInstanceUID = dataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
+            };
+            return basicInfo;
         }
     }
 }

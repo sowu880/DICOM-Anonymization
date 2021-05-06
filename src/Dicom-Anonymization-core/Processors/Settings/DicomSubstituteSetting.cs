@@ -13,7 +13,7 @@ namespace Dicom.Anonymization.Processors.Settings
 {
     public class DicomSubstituteSetting : IDicomAnonymizationSetting
     {
-        public string ReplaceWith { get; set; }
+        public string ReplaceWith { get; set; } = "Anonymous";
 
         public IDicomAnonymizationSetting CreateFromRuleSettings(string settings)
         {

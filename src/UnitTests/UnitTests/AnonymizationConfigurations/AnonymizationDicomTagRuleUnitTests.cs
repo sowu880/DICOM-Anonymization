@@ -1,17 +1,19 @@
-﻿using Dicom;
-using Dicom.Anonymization.AnonymizationConfigurations;
-using Newtonsoft.Json.Linq;
-using System;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using Xunit;
-using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
-using Dicom.Anonymization.Processors.Settings;
 using De_Id_Function_Shared;
+using Dicom;
+using Dicom.Anonymization.AnonymizationConfigurations;
+using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
 using Dicom.Anonymization.Model;
+using Dicom.Anonymization.Processors.Settings;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Xunit;
 
 namespace UnitTests.AnonymizationConfigurations
 {
@@ -22,18 +24,11 @@ namespace UnitTests.AnonymizationConfigurations
         public AnonymizationDicomTagRuleUnitTests()
         {
             var content = File.ReadAllText("AnonymizationConfigurations/settings.json");
-            JsonLoadSettings settings = new JsonLoadSettings
-            {
-                DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error,
-            };
-            var token = JToken.Parse(content, settings);
             _configuration = JsonConvert.DeserializeObject<AnonymizationConfiguration>(content);
         }
 
-
         public static IEnumerable<object[]> GetDicomConfigs()
         {
-            /*
             yield return new object[] { new Dictionary<string, object>() { { "tag", "(0040,1001)" }, { "method", "redact" } }, null, new DicomTag(0x0040, 0x1001), null, "redact", false, false, null };
             yield return new object[] { new Dictionary<string, object>() { { "tag", "00401001" }, { "method", "redact" } }, null, new DicomTag(0x0040, 0x1001), null, "redact", false, false, null };
             yield return new object[] { new Dictionary<string, object>() { { "tag", "0040,1001" }, { "method", "redact" } }, null, new DicomTag(0x0040, 0x1001), null, "redact", false, false, null };
@@ -42,8 +37,8 @@ namespace UnitTests.AnonymizationConfigurations
             yield return new object[] { new Dictionary<string, object>() { { "tag", "PatientName" }, { "method", "encrypt" } }, null, new DicomTag(0x0010, 0x0010), null, "encrypt", false, false, null };
             yield return new object[] { new Dictionary<string, object>() { { "tag", "PatientName" }, { "method", "perturb" }, { "setting", "perturbCustomerSetting" } }, null, new DicomTag(0x0010, 0x0010), null, "perturb", false, false, new DicomPerturbSetting { Span = 1, RoundTo = 2, RangeType = PerturbRangeType.Fixed, Distribution = PerturbDistribution.Uniform } };
             yield return new object[] { new Dictionary<string, object>() { { "tag", "PatientName" }, { "method", "perturb" }, { "params",   "{roundTo : 3}" } }, null, new DicomTag(0x0010, 0x0010), null, "perturb", false, false, new DicomPerturbSetting { Span = 1, RoundTo = 3, RangeType = PerturbRangeType.Proportional, Distribution = PerturbDistribution.Uniform } };
-            */
             yield return new object[] { new Dictionary<string, object>() { { "tag", "PatientName" }, { "method", "perturb" }, { "params", "{roundTo : 3}" }, { "setting", "perturbCustomerSetting" } }, null, new DicomTag(0x0010, 0x0010), null, "perturb", false, false, new DicomPerturbSetting { Span = 1, RoundTo = 3, RangeType = PerturbRangeType.Fixed, Distribution = PerturbDistribution.Uniform } };
+            yield return new object[] { new Dictionary<string, object>() { { "tag", "PatientName" }, { "method", "perturb" }, { "params", "{roundTo : 3}" } }, null, new DicomTag(0x0010, 0x0010), null, "perturb", false, false, new DicomPerturbSetting { Span = 1, RoundTo = 3, RangeType = PerturbRangeType.Proportional, Distribution = PerturbDistribution.Uniform } };
         }
 
         public static IEnumerable<object[]> GetInvalidConfigs()

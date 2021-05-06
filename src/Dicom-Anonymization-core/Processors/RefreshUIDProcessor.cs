@@ -15,7 +15,7 @@ namespace Dicom.Anonymization.Processors
     {
         public Dictionary<string, string> ReplacedUIDs { get; } = new Dictionary<string, string>();
 
-        public void Process(DicomDataset dicomDataset, DicomItem item, IDicomAnonymizationSetting settings = null)
+        public void Process(DicomDataset dicomDataset, DicomItem item, DicomBasicInformation basicInfo = null, IDicomAnonymizationSetting settings = null)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             EnsureArg.IsNotNull(item, nameof(item));

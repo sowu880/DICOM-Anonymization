@@ -1,13 +1,15 @@
-﻿using Dicom;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+using Dicom;
 using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
-using Dicom.Anonymization.Model;
 using Dicom.Anonymization.Processors;
 using Dicom.Anonymization.Processors.Settings;
 using Dicom.IO.Buffer;
-using Microsoft.Extensions.Primitives;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 
 namespace UnitTests
@@ -44,14 +46,11 @@ namespace UnitTests
 
         public static IEnumerable<object[]> GetValidVRItemForCryptoHash()
         {
-            /*
             yield return new object[] { DicomTag.Consulting​Physician​Name, "Test\\Test", @"d61ffce34b0192c52d7a67215be73f1e2d640d01383dd8115170b9bd20779a91\d61ffce34b0192c52d7a67215be73f1e2d640d01383dd8115170b9bd20779a91"}; // PN
             yield return new object[] { DicomTag.Long​Code​Value, "TEST" , "2e7acefff0307262cef6f503fa7019257f3f9d47fc987fb2c5a31ae4f4d3c022" }; // UC
             yield return new object[] { DicomTag.Event​Timer​Names, "TestTimer", "967df06624010af6b86a019e26aff938976a82e947e96331d8f1fdf387a88089" }; // LO
             yield return new object[] { DicomTag.Strain​Additional​Information, "TestInformation", "70267ad9b166401a6cd6939564dcb70264bb5a62809948e83eebc1a233f43617" }; // UT
             yield return new object[] { DicomTag.Derivation​Description, "TestDescription", "79a5ed3e37eba9bcd14cc30759916ad5df394047a2fed4ad69f1d8ec5edc5337" }; // ST
-            
-            */
             yield return new object[] { DicomTag.Pixel​Data​Provider​URL, "http://test", "4983fd14ec2878e50c454764a0d02654ae76fe1001557847b031435100acc9a1" }; // LT
         }
 
@@ -76,7 +75,7 @@ namespace UnitTests
                 { tag, value },
             };
 
-            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), new DicomCryptoHashSetting() {CryptoHashKey = "123" } );
+            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), null, new DicomCryptoHashSetting() {CryptoHashKey = "123" } );
             Assert.Equal(result, dataset.GetDicomItem<DicomElement>(tag).Get<string>());
         }
 
@@ -87,7 +86,7 @@ namespace UnitTests
             var item = new DicomOtherByte(tag, Convert.FromBase64String("test"));
             var dataset = new DicomDataset(item);
 
-            Processor.Process(dataset, item, new DicomCryptoHashSetting() { CryptoHashKey = "123" });
+            Processor.Process(dataset, item, null, new DicomCryptoHashSetting() { CryptoHashKey = "123" });
             Assert.Equal(Convert.FromBase64String("w/6pPBK4e4ZFIc7W6+6qqXH4A0rUg4km8IK59Rjt75Q="), dataset.GetDicomItem<DicomOtherByte>(tag).Get<byte[]>());
         }
 
@@ -101,7 +100,7 @@ namespace UnitTests
 
             var dataset = new DicomDataset(item);
 
-            Processor.Process(dataset, item, new DicomCryptoHashSetting() { CryptoHashKey = "123" });
+            Processor.Process(dataset, item, null, new DicomCryptoHashSetting() { CryptoHashKey = "123" });
 
             var enumerator = ((DicomFragmentSequence)dataset.GetDicomItem<DicomItem>(tag)).GetEnumerator();
             while (enumerator.MoveNext())

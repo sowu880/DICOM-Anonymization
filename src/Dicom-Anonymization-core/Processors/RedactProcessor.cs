@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using De_Id_Function_Shared;
+using Dicom.Anonymization.Model;
 using Dicom.Anonymization.Processors.Settings;
 using EnsureThat;
 
@@ -21,7 +22,7 @@ namespace Dicom.Anonymization.Processors
             _defaultRedactFunction = defaultRedactSettings;
         }
 
-        public void Process(DicomDataset dicomDataset, DicomItem item, IDicomAnonymizationSetting settings = null)
+        public void Process(DicomDataset dicomDataset, DicomItem item, DicomBasicInformation basicInfo = null, IDicomAnonymizationSetting settings = null)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             EnsureArg.IsNotNull(item, nameof(item));

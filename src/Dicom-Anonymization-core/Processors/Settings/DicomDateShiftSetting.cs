@@ -15,7 +15,7 @@ namespace Dicom.Anonymization.Processors.Settings
 {
     public class DicomDateShiftSetting : DateShiftSetting, IDicomAnonymizationSetting
     {
-        public DateShiftScope DateShiftScope { get; set; }
+        public DateShiftScope DateShiftScope { get; set; } = DateShiftScope.SopInstance;
 
         public IDicomAnonymizationSetting CreateFromRuleSettings(string settings)
         {

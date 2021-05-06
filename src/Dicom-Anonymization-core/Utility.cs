@@ -21,8 +21,8 @@ namespace Dicom.Anonymization
 
         public static DateTimeObject ParseDicomDateTime(string date)
         {
-            Regex DateTimeRegex = new Regex(@"^((?<year>\d{4})(?<month>\d{2})(?<day>\d{2})(?<hour>\d{2})(?<minute>\d{2})(?<second>\d{2})(\.(?<millisecond>\d{1,6}))?(?<timeZone>(?<sign>-|\+)(?<timeZoneHour>\d{2})(?<timeZoneMinute>\d{2}))?)(\s*)");
-            var matches = DateTimeRegex.Matches(date);
+            Regex dateTimeRegex = new Regex(@"^((?<year>\d{4})(?<month>\d{2})(?<day>\d{2})(?<hour>\d{2})(?<minute>\d{2})(?<second>\d{2})(\.(?<millisecond>\d{1,6}))?(?<timeZone>(?<sign>-|\+)(?<timeZoneHour>\d{2})(?<timeZoneMinute>\d{2}))?)(\s*)");
+            var matches = dateTimeRegex.Matches(date);
             if (matches.Count != 1)
             {
                 throw new Exception();
@@ -81,7 +81,7 @@ namespace Dicom.Anonymization
             }
             else
             {
-                return date.DateValue.ToString("yyyyMMddHHmmss.ffffffzzz", CultureInfo.InvariantCulture).Replace(":", "");
+                return date.DateValue.ToString("yyyyMMddHHmmss.ffffffzzz", CultureInfo.InvariantCulture).Replace(":", string.Empty);
             }
         }
 
@@ -101,10 +101,10 @@ namespace Dicom.Anonymization
 
             Dictionary<string, AgeType> ageTypeMapping = new Dictionary<string, AgeType>
             {
-                {"Y", AgeType.Year },
-                {"M", AgeType.Month },
-                {"W", AgeType.Week },
-                {"D", AgeType.Day },
+                { "Y", AgeType.Year },
+                { "M", AgeType.Month },
+                { "W", AgeType.Week },
+                { "D", AgeType.Day },
             };
 
             foreach (var item in ageTypeMapping)
@@ -128,10 +128,10 @@ namespace Dicom.Anonymization
         {
             Dictionary<string, AgeType> ageTypeMapping = new Dictionary<string, AgeType>
             {
-                {"Y", AgeType.Year },
-                {"M", AgeType.Month },
-                {"W", AgeType.Week },
-                {"D", AgeType.Day },
+                { "Y", AgeType.Year },
+                { "M", AgeType.Month },
+                { "W", AgeType.Week },
+                { "D", AgeType.Day },
             };
 
             if (age == null)

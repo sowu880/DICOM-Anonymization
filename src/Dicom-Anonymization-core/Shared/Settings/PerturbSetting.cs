@@ -12,11 +12,11 @@ namespace De_Id_Function_Shared
 {
     public class PerturbSetting
     {
-        public double Span { get; set; }
+        public double Span { get; set; } = 1;
 
-        public PerturbRangeType RangeType { get; set; }
+        public PerturbRangeType RangeType { get; set; } = PerturbRangeType.Proportional;
 
-        public int RoundTo { get; set; }
+        public int RoundTo { get; set; } = 2;
 
         public Func<double, double> NoiseFunction { get; set; }
 

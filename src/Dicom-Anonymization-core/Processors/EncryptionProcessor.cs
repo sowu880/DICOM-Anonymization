@@ -28,7 +28,7 @@ namespace Dicom.Anonymization.Processors
             _defaultSetting = defaultSetting;
         }
 
-        public void Process(DicomDataset dicomDataset, DicomItem item, IDicomAnonymizationSetting settings = null)
+        public void Process(DicomDataset dicomDataset, DicomItem item, DicomBasicInformation basicInfo = null, IDicomAnonymizationSetting settings = null)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             EnsureArg.IsNotNull(item, nameof(item));
@@ -39,7 +39,7 @@ namespace Dicom.Anonymization.Processors
             }
 
             var encryptSetting = (DicomEncryptionSetting)(settings ?? _defaultSetting);
-            var key = Encoding.UTF8.GetBytes(string.IsNullOrEmpty(encryptSetting.EncryptKey) ? Guid.NewGuid().ToString("N") : ((DicomEncryptionSetting)encryptSetting).EncryptKey);
+            var key = Encoding.UTF8.GetBytes(string.IsNullOrEmpty(encryptSetting.EncryptKey) ? Guid.NewGuid().ToString("N") : encryptSetting.EncryptKey);
             var encoding = DicomEncoding.Default;
             try
             {

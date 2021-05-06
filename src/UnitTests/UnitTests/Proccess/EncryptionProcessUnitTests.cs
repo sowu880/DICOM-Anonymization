@@ -97,7 +97,7 @@ namespace UnitTests
                 { tag, value },
             };
 
-            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), new DicomEncryptionSetting() { EncryptKey = "0000000000000000"});
+            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), null, new DicomEncryptionSetting() { EncryptKey = "0000000000000000"});
             var test = dataset.GetDicomItem<DicomElement>(tag).Get<string>();
 
             var decryptedValue = string.Join(@"\", dataset.GetDicomItem<DicomElement>(tag).Get<string[]>().Select(x => Decryption(x, "0000000000000000")));

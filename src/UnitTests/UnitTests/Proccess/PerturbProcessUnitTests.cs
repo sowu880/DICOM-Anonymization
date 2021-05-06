@@ -74,7 +74,7 @@ namespace UnitTests
                 { tag, value },
             };
 
-            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), settings);
+            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), null, settings);
             foreach (var item in dataset.GetDicomItem<DicomElement>(tag).Get<string[]>())
             {
                 Assert.InRange(decimal.Parse(item), minExpectedValue, maxExpectedValue);
@@ -90,7 +90,7 @@ namespace UnitTests
             var item = new DicomAgeString(tag, "050Y");
             var dataset = new DicomDataset(item);
 
-            Processor.Process(dataset, item, new DicomPerturbSetting() { Span = 1, RoundTo = 2, RangeType = PerturbRangeType.Proportional });
+            Processor.Process(dataset, item, null, new DicomPerturbSetting() { Span = 1, RoundTo = 2, RangeType = PerturbRangeType.Proportional });
             Assert.InRange(int.Parse(dataset.GetDicomItem<DicomAgeString>(tag).Get<string>().Substring(0, 3)), 25, 75);
         }
 

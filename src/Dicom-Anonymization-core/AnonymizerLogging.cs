@@ -3,13 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Dicom.Anonymization.Model;
-using Dicom.Anonymization.Processors.Settings;
+using Microsoft.Extensions.Logging;
 
-namespace Dicom.Anonymization.Processors
+namespace Dicom.Anonymization
 {
-    public interface IAnonymizationProcessor
+    public static class AnonymizerLogging
     {
-        public void Process(DicomDataset dicomDataset, DicomItem item, DicomBasicInformation basicInfo, IDicomAnonymizationSetting settings = null);
+        public static ILoggerFactory LoggerFactory { get; set; } = new LoggerFactory();
+
+        public static ILogger CreateLogger<T>() => LoggerFactory.CreateLogger<T>();
     }
 }

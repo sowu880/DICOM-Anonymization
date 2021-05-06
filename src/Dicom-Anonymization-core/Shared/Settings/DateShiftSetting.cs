@@ -8,7 +8,7 @@ namespace De_Id_Function_Shared.Settings
     {
         public uint DateShiftRange { get; set; } = 50;
 
-        public string DateShiftKey { get; set; }
+        public string DateShiftKey { get; set; } = string.Empty;
 
         public string DateShiftKeyPrefix { get; set; } = string.Empty;
 

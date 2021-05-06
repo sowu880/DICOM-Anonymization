@@ -43,7 +43,7 @@ namespace UnitTests
                 { tag, value },
             };
 
-            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), settings);
+            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), null, settings);
             Assert.Equal(replaceWith, dataset.GetDicomItem<DicomElement>(tag).Get<string>());
         }
 
@@ -56,7 +56,7 @@ namespace UnitTests
                 { tag, (ushort)10 },
             };
 
-            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), new DicomSubstituteSetting { ReplaceWith = "20" });
+            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), null, new DicomSubstituteSetting { ReplaceWith = "20" });
             Assert.True(dataset.GetDicomItem<DicomElement>(tag).Get<ushort>() == 20);
         }
 
@@ -81,7 +81,7 @@ namespace UnitTests
                 { tag, 10U },
             };
 
-            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), new DicomSubstituteSetting { ReplaceWith = "20" });
+            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), null, new DicomSubstituteSetting { ReplaceWith = "20" });
             Assert.True(dataset.GetDicomItem<DicomElement>(tag).Get<uint>() == 20);
         }
 
@@ -94,7 +94,7 @@ namespace UnitTests
                 { tag, 10D },
             };
 
-            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), new DicomSubstituteSetting { ReplaceWith = "20" });
+            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), null, new DicomSubstituteSetting { ReplaceWith = "20" });
             Assert.True(dataset.GetDicomItem<DicomElement>(tag).Get<double>() == 20);
         }
 
@@ -107,7 +107,7 @@ namespace UnitTests
                 { tag, 10F },
             };
 
-            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), new DicomSubstituteSetting { ReplaceWith = "20" });
+            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), null, new DicomSubstituteSetting { ReplaceWith = "20" });
             Assert.True(dataset.GetDicomItem<DicomElement>(tag).Get<float>() == 20);
         }
 

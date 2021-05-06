@@ -35,10 +35,11 @@ namespace Dicom.Anonymization.Processors
             });
         }
 
-        public void Process(DicomDataset dicomDataset, DicomItem item, IDicomAnonymizationSetting settings = null)
+        public void Process(DicomDataset dicomDataset, DicomItem item, DicomBasicInformation basicInfo, IDicomAnonymizationSetting settings = null)
         {
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             EnsureArg.IsNotNull(item, nameof(item));
+            EnsureArg.IsNotNull(basicInfo, nameof(basicInfo));
 
             if (!IsValidItemForDateShift(item))
             {
@@ -47,27 +48,13 @@ namespace Dicom.Anonymization.Processors
 
             var dateShiftSetting = (DicomDateShiftSetting)(settings ?? _defaultSetting);
             var dateShiftFunction = CreateDateShiftFunction(dateShiftSetting);
-            var dateShiftScope = dateShiftSetting.DateShiftScope;
-            try
+            dateShiftFunction.DateShiftKeyPrefix = dateShiftSetting.DateShiftScope switch
             {
-                if (dateShiftScope == DateShiftScope.StudyInstance)
-                {
-                    dateShiftFunction.DateShiftKeyPrefix = dicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
-                }
-                else if (dateShiftScope == DateShiftScope.SeriesInstance)
-                {
-                    dateShiftFunction.DateShiftKeyPrefix = dicomDataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
-                }
-                else if (dateShiftScope == DateShiftScope.SopInstance)
-                {
-                    dateShiftFunction.DateShiftKeyPrefix = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
-                }
-            }
-            catch
-            {
-                dateShiftFunction.DateShiftKeyPrefix = string.Empty;
-            }
-
+                DateShiftScope.StudyInstance => basicInfo.StudyInstanceUID ?? string.Empty,
+                DateShiftScope.SeriesInstance => basicInfo.StudyInstanceUID ?? string.Empty,
+                DateShiftScope.SopInstance => basicInfo.SopInstanceUID ?? string.Empty,
+                _ => string.Empty,
+            };
             if (item.ValueRepresentation == DicomVR.DA)
             {
                 var values = ((DicomDate)item).Get<string[]>().Select(x => dateShiftFunction.ShiftDateTime(Utility.ParseDicomDate(x))).Where(x => !DateTimeUtility.IndicateAgeOverThreshold(x));

@@ -13,9 +13,9 @@ namespace Dicom.Anonymization.Processors.Settings
 {
     public class DicomCryptoHashSetting : IDicomAnonymizationSetting
     {
-        public string CryptoHashKey { get; set; }
+        public string CryptoHashKey { get; set; } = string.Empty;
 
-        public CryptoHashFunctionTypes CryptoHashFunction { get; set; }
+        public CryptoHashFunctionTypes CryptoHashFunction { get; set; } = CryptoHashFunctionTypes.Sha256;
 
         public IDicomAnonymizationSetting CreateFromRuleSettings(string settings)
         {
