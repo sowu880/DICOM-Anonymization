@@ -4,9 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using De_Id_Function_Shared;
+using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
+using Dicom.Anonymization.Model;
+using Dicom.Anonymization.Processors.Model;
 using Dicom.Anonymization.Processors.Settings;
 using EnsureThat;
 
@@ -25,8 +27,15 @@ namespace Dicom.Anonymization.Processors
 
         public void Process(DicomDataset dicomDataset, DicomItem item, IDicomAnonymizationSetting settings = null)
         {
-            var perturbSetting = settings == null ? _defaultSetting : (DicomPerturbSetting)settings;
-            var perturbedValues = new List<decimal>() { };
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(item, nameof(item));
+
+            if (!IsValidItemForPerturb(item))
+            {
+                throw new AnonymizationOperationException(DicomAnonymizationErrorCode.UnsupportedAnonymizationFunction, $"Perturb is not supported for {item.ValueRepresentation}");
+            }
+
+            var perturbSetting = (DicomPerturbSetting)(settings ?? _defaultSetting);
 
             if (item.ValueRepresentation == DicomVR.AS)
             {
@@ -80,15 +89,8 @@ namespace Dicom.Anonymization.Processors
             }
             else if (item.ValueRepresentation == DicomVR.OW)
             {
-                if (item is DicomOtherWordFragment)
-                {
-                    throw new Exception($"Invalid perturb operation for item {item}");
-                }
-                else
-                {
-                    var values = ((DicomOtherWord)item).Get<ushort[]>().Select(x => PerturbFunction.Perturb(x, perturbSetting));
-                    dicomDataset.AddOrUpdate(item.ValueRepresentation, item.Tag, values.ToArray());
-                }
+                var values = ((DicomOtherWord)item).Get<ushort[]>().Select(x => PerturbFunction.Perturb(x, perturbSetting));
+                dicomDataset.AddOrUpdate(item.ValueRepresentation, item.Tag, values.ToArray());
             }
             else if (item.ValueRepresentation == DicomVR.UL)
             {
@@ -115,10 +117,12 @@ namespace Dicom.Anonymization.Processors
                 var values = ((DicomSignedVeryLong)item).Get<long[]>().Select(x => PerturbFunction.Perturb(x, perturbSetting));
                 dicomDataset.AddOrUpdate(item.ValueRepresentation, item.Tag, values.ToArray());
             }
-            else
-            {
-                throw new Exception($"Invalid perturb operation for item {item}");
-            }
+        }
+
+        public bool IsValidItemForPerturb(DicomItem item)
+        {
+            var supportedVR = Enum.GetNames(typeof(PerturbSupportedVR)).ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+            return supportedVR.Contains(item.ValueRepresentation.Code) && !(item is DicomFragmentSequence);
         }
     }
 }

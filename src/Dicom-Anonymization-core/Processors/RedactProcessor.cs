@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using De_Id_Function_Shared;
 using Dicom.Anonymization.Processors.Settings;
+using EnsureThat;
 
 namespace Dicom.Anonymization.Processors
 {
@@ -22,7 +23,10 @@ namespace Dicom.Anonymization.Processors
 
         public void Process(DicomDataset dicomDataset, DicomItem item, IDicomAnonymizationSetting settings = null)
         {
-            var redactSettings = settings == null ? _defaultRedactFunction : (DicomRedactSetting)settings;
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(item, nameof(item));
+
+            var redactSettings = (DicomRedactSetting)(settings ?? _defaultRedactFunction);
             var redactFunction = new RedactFunction(redactSettings);
 
             var redactedValues = new List<string>() { };

@@ -1,27 +1,33 @@
-﻿using De_Id_Function_Shared;
-using Dicom;
-using Dicom.Anonymization.Model;
-using Dicom.Anonymization.Processors;
-using Dicom.IO.Buffer;
-using Microsoft.Extensions.Primitives;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using De_Id_Function_Shared;
+using Dicom;
+using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
+using Dicom.Anonymization.Model;
+using Dicom.Anonymization.Processors;
+using Dicom.Anonymization.Processors.Settings;
+using Dicom.IO.Buffer;
 using Xunit;
 
 namespace UnitTests
 {
     public class EncryptionProcessUnitTests
     {
+        private string _defaultEncryptKey = "1234567812345678";
+
         public EncryptionProcessUnitTests()
         {
-            Processor = new EncryptionProcessor(new DicomEncryptionSetting() { EncryptKey = DefaultEncryptKey });
+            Processor = new EncryptionProcessor(new DicomEncryptionSetting() { EncryptKey = _defaultEncryptKey });
         }
 
         public EncryptionProcessor Processor { get; set; }
-
-        public string DefaultEncryptKey = "1234567812345678";
 
         public static IEnumerable<object[]> GetUnsupportedVRItemForEncryption()
         {
@@ -45,12 +51,12 @@ namespace UnitTests
 
         public static IEnumerable<object[]> GetValidVRItemForEncryption()
         {
-            yield return new object[] { DicomTag.Consulting​Physician​Name, "Test\\Test", @"hzmCq54ocn2tdSHD+byM6o8rX1GU49MF9uILJ++Jdjk=\UMYXR6OVofmgd+uQ0rKp5ZEXBchB7zu+7k+zmiLL5JE=" }; // PN
-            yield return new object[] { DicomTag.Long​Code​Value, "TEST" , "jJ7zRxhIpEWWIH9qAIHDyg90+s0wl15xgVP+yt4Agb8=" }; // UC
-            yield return new object[] { DicomTag.Event​Timer​Names, "TestTimer", "RQ6/Ni0NxK5KvTXiCht6NLzJMXsV6hai7JL9cpp+tXk=" }; // LO
-            yield return new object[] { DicomTag.Strain​Additional​Information, "TestInformation", "L4vCn/M10JRqiceL63O+7wEuFQZqIcwAr/Kfa1hRHRI=" }; // UT
-            yield return new object[] { DicomTag.Derivation​Description, "TestDescription", "x51RrmYbzHSr35/lg7EKTRBZVyajSPv/A2fQswGalu4=" }; // ST
-            yield return new object[] { DicomTag.Pixel​Data​Provider​URL, "http://test", "Cy3cAem05Htuj2b+ng3sVcNI5WScyQuzNeNEHSkFtuw=" }; // LT
+            yield return new object[] { DicomTag.Consulting​Physician​Name, "Test\\Test" }; // PN
+            yield return new object[] { DicomTag.Long​Code​Value, "TEST" }; // UC
+            yield return new object[] { DicomTag.Event​Timer​Names, "TestTimer"}; // LO
+            yield return new object[] { DicomTag.Strain​Additional​Information, "TestInformation" }; // UT
+            yield return new object[] { DicomTag.Derivation​Description, "TestDescription"}; // ST
+            yield return new object[] { DicomTag.Pixel​Data​Provider​URL, "http://test" }; // LT
         }
 
         public static IEnumerable<object[]> GetValidItemForEncryptionWithOutputExceedLengthLimitation()
@@ -67,7 +73,7 @@ namespace UnitTests
                 { tag, value },
             };
 
-            Assert.Throws<Exception>(() => Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag)));
+            Assert.Throws<AnonymizationOperationException>(() => Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag)));
         }
 
         [Theory]
@@ -79,19 +85,19 @@ namespace UnitTests
                 { tag, value },
             };
 
-            Assert.Throws<Exception>(() => Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag)));
+            Assert.Throws<AnonymizationOperationException>(() => Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag)));
         }
 
         [Theory]
         [MemberData(nameof(GetValidVRItemForEncryption))]
-        public void GivenADataSetWithValidVRForCryptoHash_WhenCryptoHash_ItemWillBeHashed(DicomTag tag, string value, string result)
+        public void GivenADataSetWithValidVRForCryptoHash_WhenCryptoHash_ItemWillBeHashed(DicomTag tag, string value)
         {
             var dataset = new DicomDataset
             {
                 { tag, value },
             };
 
-            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), new Dictionary<string, object> { { "EncryptKey", "0000000000000000" } });
+            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), new DicomEncryptionSetting() { EncryptKey = "0000000000000000"});
             var test = dataset.GetDicomItem<DicomElement>(tag).Get<string>();
 
             var decryptedValue = string.Join(@"\", dataset.GetDicomItem<DicomElement>(tag).Get<string[]>().Select(x => Decryption(x, "0000000000000000")));
@@ -111,7 +117,7 @@ namespace UnitTests
             var dataset = new DicomDataset(item);
 
             Processor.Process(dataset, item);
-            Assert.Equal(Encoding.UTF8.GetBytes("test"), EncryptFunction.DecryptContentWithAES(dataset.GetDicomItem<DicomOtherByte>(tag).Get<byte[]>(), Encoding.UTF8.GetBytes(DefaultEncryptKey)));
+            Assert.Equal(Encoding.UTF8.GetBytes("test"), EncryptFunction.DecryptContentWithAES(dataset.GetDicomItem<DicomOtherByte>(tag).Get<byte[]>(), Encoding.UTF8.GetBytes(_defaultEncryptKey)));
         }
 
         [Fact]
@@ -129,7 +135,7 @@ namespace UnitTests
             var enumerator = ((DicomFragmentSequence)dataset.GetDicomItem<DicomItem>(tag)).GetEnumerator();
             while (enumerator.MoveNext())
             {
-                Assert.Equal(Encoding.UTF8.GetBytes("fragment"), EncryptFunction.DecryptContentWithAES(enumerator.Current.Data, Encoding.UTF8.GetBytes(DefaultEncryptKey)));
+                Assert.Equal(Encoding.UTF8.GetBytes("fragment"), EncryptFunction.DecryptContentWithAES(enumerator.Current.Data, Encoding.UTF8.GetBytes(_defaultEncryptKey)));
             }
         }
 
@@ -146,7 +152,7 @@ namespace UnitTests
             sps2.Add(new DicomSequence(DicomTag.ScheduledProtocolCodeSequence, spcs3));
             dataset.Add(new DicomSequence(DicomTag.ScheduledProcedureStepSequence, sps1, sps2));
 
-            Assert.Throws<Exception>(() => Processor.Process(dataset, dataset.GetDicomItem<DicomItem>(DicomTag.ScheduledProcedureStepSequence)));
+            Assert.Throws<AnonymizationOperationException>(() => Processor.Process(dataset, dataset.GetDicomItem<DicomItem>(DicomTag.ScheduledProcedureStepSequence)));
         }
 
     }

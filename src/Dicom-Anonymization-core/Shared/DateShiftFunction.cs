@@ -28,7 +28,7 @@ namespace De_Id_Function_Shared
 
         public string DateShiftKeyPrefix { get; set; } = string.Empty;
 
-        public int DateShiftRange { get; set; } = 50;
+        public uint DateShiftRange { get; set; } = 50;
 
         public int DateShiftOffset { get; }
 
@@ -72,10 +72,10 @@ namespace De_Id_Function_Shared
             var bytes = Encoding.UTF8.GetBytes(DateShiftKeyPrefix + DateShiftKey);
             foreach (byte b in bytes)
             {
-                offset = ((offset * Constants.DateShiftSeed) + (int)b) % ((2 * DateShiftRange) + 1);
+                offset = (int)(((offset * Constants.DateShiftSeed) + (int)b) % ((2 * DateShiftRange) + 1));
             }
 
-            offset -= DateShiftRange;
+            offset -= (int)DateShiftRange;
 
             return offset;
         }

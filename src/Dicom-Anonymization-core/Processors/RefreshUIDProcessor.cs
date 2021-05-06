@@ -3,9 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
+using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
+using Dicom.Anonymization.Model;
 using Dicom.Anonymization.Processors.Settings;
+using EnsureThat;
 
 namespace Dicom.Anonymization.Processors
 {
@@ -15,25 +17,28 @@ namespace Dicom.Anonymization.Processors
 
         public void Process(DicomDataset dicomDataset, DicomItem item, IDicomAnonymizationSetting settings = null)
         {
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(item, nameof(item));
+
             if (!(item is DicomElement) || item.ValueRepresentation != DicomVR.UI)
             {
-                throw new Exception($"Invalid refresh UID operation for item {item}");
+                throw new AnonymizationOperationException(DicomAnonymizationErrorCode.UnsupportedAnonymizationFunction, $"Invalid refresh UID operation for item {item}");
             }
 
-            string rep;
+            string replaced;
             DicomUID uid;
             var old = ((DicomElement)item).Get<string>();
 
             if (ReplacedUIDs.ContainsKey(old))
             {
-                rep = ReplacedUIDs[old];
-                uid = new DicomUID(rep, "Anonymized UID", DicomUidType.Unknown);
+                replaced = ReplacedUIDs[old];
+                uid = new DicomUID(replaced, "Anonymized UID", DicomUidType.Unknown);
             }
             else
             {
                 uid = DicomUIDGenerator.GenerateDerivedFromUUID();
-                rep = uid.UID;
-                ReplacedUIDs[old] = rep;
+                replaced = uid.UID;
+                ReplacedUIDs[old] = replaced;
             }
 
             var newItem = new DicomUniqueIdentifier(item.Tag, uid);

@@ -119,7 +119,7 @@ namespace De_Id_Function_Shared
 
         private static double Noise(double value, PerturbSetting perturbSetting)
         {
-            perturbSetting.Validation();
+            perturbSetting.Validate();
 
             var span = perturbSetting.Span;
             if (perturbSetting.RangeType == PerturbRangeType.Proportional)

@@ -1,14 +1,18 @@
-﻿using De_Id_Function_Shared;
-using Dicom.Anonymization.AnonymizationConfigurations;
-using Dicom.Anonymization.Model;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using FellowOakDicom.IO;
+using De_Id_Function_Shared;
+using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
+using Dicom.Anonymization.Model;
+using Dicom.Anonymization.Processors.Model;
+using Dicom.Anonymization.Processors.Settings;
 using Dicom.IO.Buffer;
 using EnsureThat;
-using Dicom.Anonymization.Processors.Settings;
 
 namespace Dicom.Anonymization.Processors
 {
@@ -28,10 +32,13 @@ namespace Dicom.Anonymization.Processors
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             EnsureArg.IsNotNull(item, nameof(item));
 
-            IsValidItemForCryptoHash(item);
+            if (!IsValidItemForCryptoHash(item))
+            {
+                throw new AnonymizationOperationException(DicomAnonymizationErrorCode.UnsupportedAnonymizationFunction, $"CryptoHash is not supported for {item.ValueRepresentation}");
+            }
 
-            var cryptoHashSetting = settings == null ? _defaultSetting : settings;
-            var cryptoHashKey = Encoding.UTF8.GetBytes(((DicomCryptoHashSetting)cryptoHashSetting).CryptoHashKey);
+            var cryptoHashSetting = (DicomCryptoHashSetting)(settings ?? _defaultSetting);
+            var cryptoHashKey = Encoding.UTF8.GetBytes(cryptoHashSetting.CryptoHashKey);
 
             var encoding = Encoding.UTF8;
             if (item is DicomStringElement)
@@ -47,7 +54,6 @@ namespace Dicom.Anonymization.Processors
             }
             else if (item is DicomFragmentSequence)
             {
-                List<byte[]> results = new List<byte[]>();
                 var enumerator = ((DicomFragmentSequence)item).GetEnumerator();
 
                 var element = item.ValueRepresentation == DicomVR.OW
@@ -63,24 +69,10 @@ namespace Dicom.Anonymization.Processors
             }
         }
 
-        public void IsValidItemForCryptoHash(DicomItem item)
+        public bool IsValidItemForCryptoHash(DicomItem item)
         {
-            if (item.ValueRepresentation.IsString)
-            {
-                if (item.ValueRepresentation == DicomVR.UI)
-                {
-                    throw new Exception($"Invalid crypto hash operation for item {item}.");
-                }
-
-                if (item.ValueRepresentation.MaximumLength < 64 && item.ValueRepresentation.MaximumLength > 0)
-                {
-                    throw new Exception($"Invalid crypto hash operation for item {item}");
-                }
-            }
-            else if (item.ValueRepresentation != DicomVR.OB && !(item is DicomFragmentSequence))
-            {
-                throw new Exception($"Invalid crypto hash operation for item {item}");
-            }
+            var supportedVR = Enum.GetNames(typeof(CryptoHashSupportedVR)).ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+            return supportedVR.Contains(item.ValueRepresentation.Code) || item is DicomFragmentSequence;
         }
 
         public string GetCryptoHashString(string input, byte[] cryptoHashKey)

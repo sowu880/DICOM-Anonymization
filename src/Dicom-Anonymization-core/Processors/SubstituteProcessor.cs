@@ -4,7 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
+using Dicom.Anonymization.Model;
 using Dicom.Anonymization.Processors.Settings;
+using EnsureThat;
 
 namespace Dicom.Anonymization.Processors
 {
@@ -19,11 +22,14 @@ namespace Dicom.Anonymization.Processors
 
         public void Process(DicomDataset dicomDataset, DicomItem item, IDicomAnonymizationSetting settings = null)
         {
-            var substituteSetting = settings == null ? _defaultSubstituteSetting : (DicomSubstituteSetting)settings;
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(item, nameof(item));
+
+            var substituteSetting = (DicomSubstituteSetting)(settings ?? _defaultSubstituteSetting);
 
             if (item is DicomOtherByte || item is DicomSequence || item is DicomFragmentSequence)
             {
-                throw new Exception($"Invalid perturb operation for item {item}");
+                throw new AnonymizationOperationException(DicomAnonymizationErrorCode.UnsupportedAnonymizationFunction, $"Invalid perturb operation for item {item}");
             }
 
             try
@@ -51,7 +57,7 @@ namespace Dicom.Anonymization.Processors
             }
             catch (Exception ex)
             {
-                throw new Exception("Invalid replace value", ex);
+                throw new AnonymizationConfigurationException(DicomAnonymizationErrorCode.InvalidConfigurationValues, "Invalid replace value", ex);
             }
         }
     }

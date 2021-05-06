@@ -20,7 +20,7 @@ namespace De_Id_Function_Shared
 
         public Func<double, double> NoiseFunction { get; set; }
 
-        public void Validation()
+        public void Validate()
         {
             if (Span < 0 || RoundTo > 28 || RoundTo < 0)
             {

@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using FellowOakDicom.IO;
+using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
 
 namespace Dicom.Anonymization
 {
@@ -26,17 +27,15 @@ namespace Dicom.Anonymization
         public AnonymizationEngine(string configFilePath = "configuration-sample.json")
         {
             var configurationManager = AnonymizationConfigurationManager.CreateFromConfigurationFile(configFilePath);
+            _defaultSettings = configurationManager.GetDefaultSettings();
             InitializeProcessors(configurationManager);
             _rulesByTag = configurationManager.DicomTagRules;
-            // _rulesByVR = configurationManager.DicomVRRules;
         }
 
         public AnonymizationEngine(AnonymizationConfigurationManager configurationManager)
         {
-            _processors = new Dictionary<string, IAnonymizationProcessor>();
-
+            _defaultSettings = configurationManager.GetDefaultSettings();
             InitializeProcessors(configurationManager);
-
             _rulesByTag = configurationManager.DicomTagRules;
         }
 
@@ -50,14 +49,6 @@ namespace Dicom.Anonymization
                 || (r.IsMasked && r.MaskedTag.IsMatch(item.Tag))).FirstOrDefault();
                 if (ruleByTag != null)
                 {
-                    if (item.ValueRepresentation == DicomVR.SQ)
-                    {
-                        if (!string.Equals(ruleByTag.Method, "remove", StringComparison.InvariantCultureIgnoreCase) && !string.Equals(ruleByTag.Method, "redact", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            throw new Exception($"Invalid {ruleByTag.Method} operation for item {item}");
-                        }
-                    }
-
                     string method = ruleByTag.Method.ToUpperInvariant();
                     if (!_processors.ContainsKey(method))
                     {

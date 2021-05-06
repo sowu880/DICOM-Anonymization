@@ -1,14 +1,16 @@
-﻿using Dicom.Anonymization.Model;
-using EnsureThat;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
+using Dicom.Anonymization.Model;
 using Dicom.Anonymization.Processors.Settings;
+using EnsureThat;
+using Newtonsoft.Json;
 
 namespace Dicom.Anonymization.AnonymizationConfigurations
 {
@@ -40,9 +42,7 @@ namespace Dicom.Anonymization.AnonymizationConfigurations
             Dictionary<string, object> parameters = null;
             if (config.ContainsKey(Constants.Parameters))
             {
-                //parameters = JToken.Parse(config[Constants.Parameters].ToString()).ToObject<Dictionary<string, object>>();
                 parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(config[Constants.Parameters].ToString());
-                // parameters = (Dictionary<string, object>)config[Constants.Parameters];
             }
 
             var method = config[Constants.MethodKey].ToString();
@@ -57,12 +57,14 @@ namespace Dicom.Anonymization.AnonymizationConfigurations
                 }
 
                 var settings = configuration.CustomizedSettings[config[Constants.RuleSetting].ToString()].ToString();
+                ruleSetting = AnonymizationDefaultSettings.DicomSettingsMapping[method].CreateFromRuleSettings(settings);
                 if (parameters != null)
                 {
-                    settings = parameters.Concat(JsonConvert.DeserializeObject<Dictionary<string, object>>(settings).Where(x => !parameters.ContainsKey(x.Key))).ToDictionary(s => s.Key, s => s.Value).ToString();
+                    var newSettings = parameters.Concat(JsonConvert.DeserializeObject<Dictionary<string, object>>(settings).Where(x => !parameters.ContainsKey(x.Key))).ToDictionary(s => s.Key, s => s.Value);
+                    ruleSetting = AnonymizationDefaultSettings.DicomSettingsMapping[method].CreateFromRuleSettings(settings);
                 }
 
-                ruleSetting = AnonymizationDefaultSettings.DicomSettingsMapping[method].CreateFromRuleSettings(settings);
+                ruleSetting.Validate();
             }
             else if (parameters != null)
             {

@@ -17,10 +17,8 @@ namespace Dicom.Anonymization
 
         public AnonymizationConfigurationManager(AnonymizationConfiguration configuration)
         {
-            configuration.GenerateSettings();
             _configuration = configuration;
             DicomTagRules = _configuration.DicomTagRules?.Select(entry => AnonymizationDicomTagRule.CreateAnonymizationDicomRule(entry, _configuration)).ToArray();
-            // DicomVRRules = _configuration.DicomVRRules.Select(entry => AnonymizationDicomTagRule.CreateAnonymizationFhirPathRule(entry)).ToArray();
         }
 
         public static AnonymizationConfigurationManager CreateFromSettingsInJson(string settingsInJson)

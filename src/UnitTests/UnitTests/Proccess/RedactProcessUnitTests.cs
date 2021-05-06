@@ -1,10 +1,16 @@
-﻿using Dicom;
-using Dicom.Anonymization.Model;
-using Dicom.Anonymization.Processors;
-using Dicom.IO.Buffer;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dicom;
+using Dicom.Anonymization.Model;
+using Dicom.Anonymization.Processors;
+using Dicom.Anonymization.Processors.Settings;
+using Dicom.IO.Buffer;
 using Xunit;
 
 namespace UnitTests
@@ -16,7 +22,7 @@ namespace UnitTests
             Processor = new RedactProcessor(new DicomRedactSetting() { EnablePartialDatesForRedact = false });
         }
 
-        RedactProcessor Processor { get; set; }
+        public RedactProcessor Processor { get; set; }
 
         [Fact]
         public void GivenADataSetWithDTItem_WhenRedactWithPartialRedact_ValueWillBePartialRedact()
@@ -34,7 +40,7 @@ namespace UnitTests
 
             foreach (var item in itemList)
             {
-                Processor.Process(dataset, item, new Dictionary<string, object>() { { "EnablePartialDatesForRedact", true } });
+                Processor.Process(dataset, item, new DicomRedactSetting { EnablePartialDatesForRedact = true });
             }
 
             Assert.Equal("20210101000000.000000+0800", dataset.GetDicomItem<DicomElement>(tag1).Get<string>());
@@ -58,7 +64,7 @@ namespace UnitTests
 
             foreach (var item in itemList)
             {
-                Processor.Process(dataset, item, new Dictionary<string, object>() { { "EnablePartialDatesForRedact", true } });
+                Processor.Process(dataset, item, new DicomRedactSetting { EnablePartialDatesForRedact = true });
             }
 
             Assert.Equal("20210101", dataset.GetDicomItem<DicomElement>(tag1).Get<string>());
@@ -81,7 +87,7 @@ namespace UnitTests
 
             foreach (var item in itemList)
             {
-                Processor.Process(dataset, item, new Dictionary<string, object>() { { "enablePartialAgeForRedact", true } });
+                Processor.Process(dataset, item, new DicomRedactSetting { EnablePartialAgeForRedact = true });
             }
 
             Assert.Equal(string.Empty, dataset.GetDicomItem<DicomElement>(tag1).Get<string>());

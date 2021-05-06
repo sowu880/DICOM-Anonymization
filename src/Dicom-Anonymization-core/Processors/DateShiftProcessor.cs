@@ -9,6 +9,9 @@ using System.Linq;
 using De_Id_Function_Shared;
 using De_Id_Function_Shared.Settings;
 using Dicom.Anonymization.AnonymizationConfigurations;
+using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
+using Dicom.Anonymization.Model;
+using Dicom.Anonymization.Processors.Model;
 using Dicom.Anonymization.Processors.Settings;
 using EnsureThat;
 
@@ -37,9 +40,14 @@ namespace Dicom.Anonymization.Processors
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             EnsureArg.IsNotNull(item, nameof(item));
 
-            var dateShiftSetting = settings == null ? _defaultSetting : settings;
-            var dateShiftFunction = CreateDateShiftFunction((DicomDateShiftSetting)dateShiftSetting);
-            var dateShiftScope = ((DicomDateShiftSetting)dateShiftSetting).DateShiftScope;
+            if (!IsValidItemForDateShift(item))
+            {
+                throw new AnonymizationOperationException(DicomAnonymizationErrorCode.UnsupportedAnonymizationFunction, $"Dateshift is not supported for {item.ValueRepresentation}");
+            }
+
+            var dateShiftSetting = (DicomDateShiftSetting)(settings ?? _defaultSetting);
+            var dateShiftFunction = CreateDateShiftFunction(dateShiftSetting);
+            var dateShiftScope = dateShiftSetting.DateShiftScope;
             try
             {
                 if (dateShiftScope == DateShiftScope.StudyInstance)
@@ -81,10 +89,12 @@ namespace Dicom.Anonymization.Processors
 
                 dicomDataset.AddOrUpdate(item.ValueRepresentation, item.Tag, results.ToArray());
             }
-            else
-            {
-                throw new Exception($"Dateshift is not supported for {item.ValueRepresentation}");
-            }
+        }
+
+        public bool IsValidItemForDateShift(DicomItem item)
+        {
+            var supportedVR = Enum.GetNames(typeof(DateShiftSupportedVR)).ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+            return supportedVR.Contains(item.ValueRepresentation.Code);
         }
     }
 }

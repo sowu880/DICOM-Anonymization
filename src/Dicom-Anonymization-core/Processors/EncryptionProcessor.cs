@@ -1,14 +1,19 @@
-﻿using De_Id_Function_Shared;
-using Dicom.Anonymization.AnonymizationConfigurations;
-using Dicom.Anonymization.Model;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using FellowOakDicom.IO;
+using De_Id_Function_Shared;
+using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
+using Dicom.Anonymization.Model;
+using Dicom.Anonymization.Processors.Model;
+using Dicom.Anonymization.Processors.Settings;
 using Dicom.IO.Buffer;
 using EnsureThat;
-using Dicom.Anonymization.Processors.Settings;
 
 namespace Dicom.Anonymization.Processors
 {
@@ -25,8 +30,16 @@ namespace Dicom.Anonymization.Processors
 
         public void Process(DicomDataset dicomDataset, DicomItem item, IDicomAnonymizationSetting settings = null)
         {
-            var encryptSetting = settings == null ? _defaultSetting : settings;
-            var key = Encoding.UTF8.GetBytes(string.IsNullOrEmpty(((DicomEncryptionSetting)encryptSetting).EncryptKey) ? Guid.NewGuid().ToString("N") : ((DicomEncryptionSetting)encryptSetting).EncryptKey);
+            EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+            EnsureArg.IsNotNull(item, nameof(item));
+
+            if (!IsValidItemForEncrypt(item))
+            {
+                throw new AnonymizationOperationException(DicomAnonymizationErrorCode.UnsupportedAnonymizationFunction, $"Encrypt is not supported for {item.ValueRepresentation}");
+            }
+
+            var encryptSetting = (DicomEncryptionSetting)(settings ?? _defaultSetting);
+            var key = Encoding.UTF8.GetBytes(string.IsNullOrEmpty(encryptSetting.EncryptKey) ? Guid.NewGuid().ToString("N") : ((DicomEncryptionSetting)encryptSetting).EncryptKey);
             var encoding = DicomEncoding.Default;
             try
             {
@@ -60,20 +73,22 @@ namespace Dicom.Anonymization.Processors
 
                     dicomDataset.AddOrUpdate(element);
                 }
-                else
-                {
-                    throw new Exception($"Invalid encryption operation for item {item}");
-                }
             }
             catch (Exception ex)
             {
                 if (ex is DicomValidationException)
                 {
-                    throw new Exception($"Invalid encryption operation for item {item}", ex);
+                    throw new AnonymizationOperationException(DicomAnonymizationErrorCode.UnsupportedAnonymizationFunction, $"Encrypt is not supported for {item.ValueRepresentation}");
                 }
 
                 throw;
             }
+        }
+
+        public bool IsValidItemForEncrypt(DicomItem item)
+        {
+            var supportedVR = Enum.GetNames(typeof(EncryptSupportedVR)).ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+            return supportedVR.Contains(item.ValueRepresentation.Code) || item is DicomFragmentSequence;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Dicom;
 using Dicom.Anonymization;
 using Dicom.Anonymization.AnonymizationConfigurations;
+using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
 using Dicom.Anonymization.Model;
 using Dicom.Anonymization.Processors;
 using Dicom.Anonymization.Processors.Settings;
@@ -69,7 +70,7 @@ namespace UnitTests
                 { tag, value },
             };
 
-            Assert.Throws<Exception>(() => Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag)));
+            Assert.Throws<AnonymizationOperationException>(() => Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag)));
         }
 
         [Theory]
@@ -114,7 +115,7 @@ namespace UnitTests
 
             var dataset = new DicomDataset(item);
 
-            Assert.Throws<Exception>(() => Processor.Process(dataset, item));
+            Assert.Throws<AnonymizationOperationException>(() => Processor.Process(dataset, item));
         }
 
         [Fact]
@@ -130,7 +131,7 @@ namespace UnitTests
             sps2.Add(new DicomSequence(DicomTag.ScheduledProtocolCodeSequence, spcs3));
             dataset.Add(new DicomSequence(DicomTag.ScheduledProcedureStepSequence, sps1, sps2));
 
-            Assert.Throws<Exception>(() => Processor.Process(dataset, dataset.GetDicomItem<DicomItem>(DicomTag.ScheduledProcedureStepSequence)));
+            Assert.Throws<AnonymizationOperationException>(() => Processor.Process(dataset, dataset.GetDicomItem<DicomItem>(DicomTag.ScheduledProcedureStepSequence)));
         }
     }
 }

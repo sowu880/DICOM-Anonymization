@@ -11,5 +11,7 @@ namespace Dicom.Anonymization.Model
         UnsupportedAnonymizationRule,
         MissingRuleSettings,
         InvalidRuleSettings,
+
+        UnsupportedAnonymizationFunction,
     }
 }
