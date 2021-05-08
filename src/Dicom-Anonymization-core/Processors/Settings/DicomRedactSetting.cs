@@ -9,6 +9,7 @@ using De_Id_Function_Shared.Settings;
 using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
 using Dicom.Anonymization.Model;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Dicom.Anonymization.Processors.Settings
 {
@@ -26,11 +27,11 @@ namespace Dicom.Anonymization.Processors.Settings
             }
         }
 
-        public IDicomAnonymizationSetting CreateFromRuleSettings(Dictionary<string, object> settings)
+        public IDicomAnonymizationSetting CreateFromRuleSettings(JObject settings)
         {
             try
             {
-                return JsonConvert.DeserializeObject<DicomRedactSetting>(JsonConvert.SerializeObject(settings));
+                return settings.ToObject<DicomRedactSetting>();
             }
             catch (Exception ex)
             {

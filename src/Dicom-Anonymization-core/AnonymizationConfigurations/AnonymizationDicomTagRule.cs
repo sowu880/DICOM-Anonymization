@@ -11,6 +11,7 @@ using Dicom.Anonymization.Model;
 using Dicom.Anonymization.Processors.Settings;
 using EnsureThat;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Dicom.Anonymization.AnonymizationConfigurations
 {
@@ -82,10 +83,10 @@ namespace Dicom.Anonymization.AnonymizationConfigurations
             }
 
             // Parse and validate settings
-            Dictionary<string, object> parameters = null;
+            JObject parameters = null;
             if (rule.ContainsKey(Constants.Parameters))
             {
-                parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(rule[Constants.Parameters].ToString());
+                parameters = JObject.Parse(rule[Constants.Parameters].ToString());
             }
 
             IDicomAnonymizationSetting ruleSetting = null;
@@ -96,22 +97,23 @@ namespace Dicom.Anonymization.AnonymizationConfigurations
                     throw new AnonymizationConfigurationException(DicomAnonymizationErrorCode.MissingConfigurationFields, $"Customized setting {rule[Constants.RuleSetting]} not defined");
                 }
 
-                var settings = configuration.CustomizedSettings[rule[Constants.RuleSetting].ToString()].ToString();
-                ruleSetting = AnonymizationDefaultSettings.DicomSettingsMapping[method].CreateFromRuleSettings(settings);
+                var settings = configuration.CustomizedSettings[rule[Constants.RuleSetting].ToString()];
+
                 if (parameters != null)
                 {
-                    var newSettings = parameters.Concat(JsonConvert.DeserializeObject<Dictionary<string, object>>(settings).Where(x => !parameters.ContainsKey(x.Key))).ToDictionary(s => s.Key, s => s.Value);
-                    ruleSetting = AnonymizationDefaultSettings.DicomSettingsMapping[method].CreateFromRuleSettings(settings);
+                    settings.Merge(parameters, new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Concat });
                 }
 
+                ruleSetting = AnonymizationDefaultSettings.DicomSettingsMapping[method].CreateFromRuleSettings(settings);
                 ruleSetting.Validate();
             }
             else if (parameters != null)
             {
                 ruleSetting = configuration.DefaultSettings.GetDefaultSetting(method);
-                var defaultSetting = JsonConvert.DeserializeObject<Dictionary<string, object>>(JsonConvert.SerializeObject(ruleSetting));
-                var settings = parameters.Concat(defaultSetting.Where(x => !parameters.ContainsKey(x.Key))).ToDictionary(s => s.Key, s => s.Value);
+                var settings = JObject.Parse(JsonConvert.SerializeObject(ruleSetting));
+                settings.Merge(parameters, new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Concat });
                 ruleSetting = AnonymizationDefaultSettings.DicomSettingsMapping[method].CreateFromRuleSettings(settings);
+                ruleSetting.Validate();
             }
 
             // Parse and validate tag

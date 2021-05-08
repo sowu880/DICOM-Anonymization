@@ -36,7 +36,7 @@ namespace UnitTests
             yield return new object[] { DicomTag.Doppler​Sample​Volume​X​Position, "12345" }; // SL
             yield return new object[] { DicomTag.Real​World​Value​First​Value​Mapped, "12345" }; // SS
             yield return new object[] { DicomTag.Referenced​Content​Item​Identifier, "12345" }; // UL
-            yield return new object[] { DicomTag.Referenced​Waveform​Channels, "12345\\1234" }; // FD
+            yield return new object[] { DicomTag.Referenced​Waveform​Channels, "12345\\1234" }; // US
         }
 
         public static IEnumerable<object[]> GetValidVRItemForRefreshUID()

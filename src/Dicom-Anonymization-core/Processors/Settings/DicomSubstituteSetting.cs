@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
 using Dicom.Anonymization.Model;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Dicom.Anonymization.Processors.Settings
 {
@@ -27,11 +28,11 @@ namespace Dicom.Anonymization.Processors.Settings
             }
         }
 
-        public IDicomAnonymizationSetting CreateFromRuleSettings(Dictionary<string, object> settings)
+        public IDicomAnonymizationSetting CreateFromRuleSettings(JObject settings)
         {
             try
             {
-                return JsonConvert.DeserializeObject<DicomSubstituteSetting>(JsonConvert.SerializeObject(settings));
+                return settings.ToObject<DicomSubstituteSetting>();
             }
             catch (Exception ex)
             {

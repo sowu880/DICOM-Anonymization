@@ -41,7 +41,7 @@ namespace Dicom.Anonymization.Processors
             EnsureArg.IsNotNull(item, nameof(item));
             EnsureArg.IsNotNull(basicInfo, nameof(basicInfo));
 
-            if (!IsValidItemForDateShift(item))
+            if (dicomDataset.AutoValidate && !IsValidItemForDateShift(item))
             {
                 throw new AnonymizationOperationException(DicomAnonymizationErrorCode.UnsupportedAnonymizationFunction, $"Dateshift is not supported for {item.ValueRepresentation}");
             }

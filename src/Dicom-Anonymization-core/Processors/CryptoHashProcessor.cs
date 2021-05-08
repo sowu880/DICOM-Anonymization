@@ -32,7 +32,7 @@ namespace Dicom.Anonymization.Processors
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             EnsureArg.IsNotNull(item, nameof(item));
 
-            if (!IsValidItemForCryptoHash(item))
+            if (dicomDataset.AutoValidate && !IsValidItemForCryptoHash(item))
             {
                 throw new AnonymizationOperationException(DicomAnonymizationErrorCode.UnsupportedAnonymizationFunction, $"CryptoHash is not supported for {item.ValueRepresentation}");
             }
@@ -66,6 +66,10 @@ namespace Dicom.Anonymization.Processors
                 }
 
                 dicomDataset.AddOrUpdate(element);
+            }
+            else
+            {
+                throw new AnonymizationOperationException(DicomAnonymizationErrorCode.UnsupportedAnonymizationFunction, $"CryptoHash is not supported for {item.ValueRepresentation}");
             }
         }
 

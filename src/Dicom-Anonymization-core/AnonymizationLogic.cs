@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Anonymization.Tool
         {
             try
             {
-                var engine = new AnonymizationEngine(options.ConfigurationFilePath);
+                var engine = new AnonymizerEngine(options.ConfigurationFilePath);
                 if (options.InputFile != null)
                 {
                     await AnonymizeOneFile(options.InputFile, options.OutputFile, engine);
@@ -41,7 +41,7 @@ namespace Microsoft.Health.Dicom.Anonymization.Tool
             }
         }
 
-        internal static async Task AnonymizeOneFile(string inputFile, string outputFile, AnonymizationEngine engine )
+        internal static async Task AnonymizeOneFile(string inputFile, string outputFile, AnonymizerEngine engine )
         {
             DicomFile dicomFile = await DicomFile.OpenAsync(inputFile).ConfigureAwait(false);
             // Console.WriteLine("{0,-15}{1,-40}{2,-15}{3,-50}{4,-70}", "Tag", "Name", "De-ID Method", "Original Value", "Result");

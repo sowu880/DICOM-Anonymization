@@ -31,22 +31,14 @@ namespace UnitTests
 
         public static IEnumerable<object[]> GetUnsupportedVRItemForEncryption()
         {
-            // Invalid output length limitation
-            yield return new object[] { DicomTag.RetrieveAETitle, "TEST" }; // AE
-            yield return new object[] { DicomTag.PatientAge, "100Y" }; // AS
-            yield return new object[] { DicomTag.Query​Retrieve​Level, "0" }; // CS
-            yield return new object[] { DicomTag.Event​Elapsed​Times, "1234.5" }; // DS
-            yield return new object[] { DicomTag.Stage​Number, "1234" }; // IS
-            yield return new object[] { DicomTag.Patient​Telephone​Numbers, "TEST" }; // SH
-            yield return new object[] { DicomTag.SOP​Classes​In​Study, "12345" }; // UI
-
-            // Invalid input
+            // Invalid output type
             yield return new object[] { DicomTag.Longitudinal​Temporal​Offset​From​Event, "12345" }; // FD
             yield return new object[] { DicomTag.Examined​Body​Thickness, "12345" }; // FL
             yield return new object[] { DicomTag.Doppler​Sample​Volume​X​Position, "12345" }; // SL
             yield return new object[] { DicomTag.Real​World​Value​First​Value​Mapped, "12345" }; // SS
             yield return new object[] { DicomTag.Referenced​Content​Item​Identifier, "12345" }; // UL
-            yield return new object[] { DicomTag.Referenced​Waveform​Channels, "12345\\1234" }; // FD
+            yield return new object[] { DicomTag.Referenced​Waveform​Channels, "12345\\1234" }; // US
+            yield return new object[] { DicomTag.Longitudinal​Temporal​Offset​From​Event, "12345" }; // FD
         }
 
         public static IEnumerable<object[]> GetValidVRItemForEncryption()
@@ -59,8 +51,15 @@ namespace UnitTests
             yield return new object[] { DicomTag.Pixel​Data​Provider​URL, "http://test" }; // LT
         }
 
-        public static IEnumerable<object[]> GetValidItemForEncryptionWithOutputExceedLengthLimitation()
+        public static IEnumerable<object[]> GetValidItemForEncryptionButOutputExceedLengthLimitation()
         {
+            yield return new object[] { DicomTag.RetrieveAETitle, "TEST" }; // AE
+            yield return new object[] { DicomTag.PatientAge, "100Y" }; // AS
+            yield return new object[] { DicomTag.Query​Retrieve​Level, "0" }; // CS
+            yield return new object[] { DicomTag.Event​Elapsed​Times, "1234.5" }; // DS
+            yield return new object[] { DicomTag.Stage​Number, "1234" }; // IS
+            yield return new object[] { DicomTag.Patient​Telephone​Numbers, "TEST" }; // SH
+            yield return new object[] { DicomTag.SOP​Classes​In​Study, "12345" }; // UI
             yield return new object[] { DicomTag.Consulting​Physician​Name, "jJ7zRxhIpEWWIH9qAIHDyg90+s0wl15xgVP+yt4Agb8=jJ7zRxhIpEWWIH9qAIHDyg90+s0wl15xgVP+yt4Agb8=" };
         }
 
@@ -77,7 +76,7 @@ namespace UnitTests
         }
 
         [Theory]
-        [MemberData(nameof(GetValidItemForEncryptionWithOutputExceedLengthLimitation))]
+        [MemberData(nameof(GetValidItemForEncryptionButOutputExceedLengthLimitation))]
         public void GivenADataSetWithValidVRForEncryption_IfOutputExceedLengthLimitation_WhenEncrypt_ExceptionWillBeThrown(DicomTag tag, string value)
         {
             var dataset = new DicomDataset
@@ -89,8 +88,24 @@ namespace UnitTests
         }
 
         [Theory]
+        [MemberData(nameof(GetValidItemForEncryptionButOutputExceedLengthLimitation))]
+        public void GivenADataSetWithValidVRForEncryption_IfOutputExceedLengthLimitation_WhenEncryptWithoutAutoValidation_ResultWillBeReturned(DicomTag tag, string value)
+        {
+            var dataset = new DicomDataset
+            {
+                { tag, value },
+            };
+            dataset.AutoValidate = false;
+            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), null, new DicomEncryptionSetting() { EncryptKey = "0000000000000000" });
+            var test = dataset.GetDicomItem<DicomElement>(tag).Get<string>();
+
+            var decryptedValue = string.Join(@"\", dataset.GetDicomItem<DicomElement>(tag).Get<string[]>().Select(x => Decryption(x, "0000000000000000")));
+            Assert.Equal(value, decryptedValue);
+        }
+
+        [Theory]
         [MemberData(nameof(GetValidVRItemForEncryption))]
-        public void GivenADataSetWithValidVRForCryptoHash_WhenCryptoHash_ItemWillBeHashed(DicomTag tag, string value)
+        public void GivenADataSetWithValidVRForCryptoHash_WhenCryptoHashWithAutoValidation_ItemWillBeHashed(DicomTag tag, string value)
         {
             var dataset = new DicomDataset
             {

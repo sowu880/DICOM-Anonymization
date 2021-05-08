@@ -23,8 +23,9 @@ namespace UnitTests
 
         public SubstituteProcessor Processor { get; set; }
 
-        public static IEnumerable<object[]> GetValidItemAndSettingForSubstitute()
+        public static IEnumerable<object[]> GetValidSettingForSubstitute()
         {
+            // string element
             yield return new object[] { DicomTag.RetrieveAETitle, "TEST", new DicomSubstituteSetting { ReplaceWith = "Anonymous" }, "Anonymous" }; // AE
             yield return new object[] { DicomTag.Query​Retrieve​Level, "0", new DicomSubstituteSetting { ReplaceWith = "1" }, "1" }; // CS
             yield return new object[] { DicomTag.Patient​Telephone​Numbers, "TEST", null, "Anonymous" }; // SH
@@ -32,17 +33,91 @@ namespace UnitTests
             yield return new object[] { DicomTag.Frame​Acquisition​Date​Time, "20200101", new DicomSubstituteSetting { ReplaceWith = "20000101" }, "20000101" }; // DT
             yield return new object[] { DicomTag.Expiry​Date, "20200101", new DicomSubstituteSetting { ReplaceWith = "20000101" }, "20000101" }; // DA
             yield return new object[] { DicomTag.Secondary​Review​Time, "120101.000", new DicomSubstituteSetting { ReplaceWith = "000000.000" }, "000000.000" }; // TM
+            yield return new object[] { DicomTag.Patient​Weight, "53.000", new DicomSubstituteSetting { ReplaceWith = "50.1" }, "50.1" }; // DS
+            yield return new object[] { DicomTag.Stage​Number, "10", new DicomSubstituteSetting { ReplaceWith = "20" }, "20" }; // IS
+            yield return new object[] { DicomTag.Patient​Age, "010Y", new DicomSubstituteSetting { ReplaceWith = "020M" }, "020M" }; // AS
+            yield return new object[] { DicomTag.Patient​Birth​Name, "Name", new DicomSubstituteSetting { ReplaceWith = "Name=Name=Name" }, "Name=Name=Name" }; // PN
+            yield return new object[] { DicomTag.Strain​Description, "​Description", null, "Anonymous" }; // UC
+
+            // AT element
+            // yield return new object[] { DicomTag.Dimension​Index​Pointer, "​00100010", new DicomSubstituteSetting { ReplaceWith = "11001100" }, "(1100,1100)" }; // AT
+
+            // value element
+            yield return new object[] { DicomTag.Longitudinal​Temporal​Offset​From​Event, "12345", new DicomSubstituteSetting { ReplaceWith = "23456" }, "23456" }; // FD
+            yield return new object[] { DicomTag.Examined​Body​Thickness, "12345", new DicomSubstituteSetting { ReplaceWith = "23456" }, "23456" }; // FL
+            yield return new object[] { DicomTag.Doppler​Sample​Volume​X​Position, "12345", new DicomSubstituteSetting { ReplaceWith = "23456" }, "23456" }; // SL
+            yield return new object[] { DicomTag.Pixel​Intensity​Relationship​Sign, "12345", new DicomSubstituteSetting { ReplaceWith = "-23456" }, "-23456" }; // SS
+            yield return new object[] { DicomTag.Referenced​Content​Item​Identifier, "12345", new DicomSubstituteSetting { ReplaceWith = "23456" }, "23456" }; // UL
+            yield return new object[] { DicomTag.Warning​Reason, "10", new DicomSubstituteSetting { ReplaceWith = "20" }, "20" }; // US
+        }
+
+        public static IEnumerable<object[]> GetInValidStringFormatForSubstitute()
+        {
+            yield return new object[] { DicomTag.RetrieveAETitle, "TEST", new DicomSubstituteSetting { ReplaceWith = "AnonymousAnonymousAnonymous" }, "AnonymousAnonymousAnonymous" }; // AE 16bytes maximum
+            yield return new object[] { DicomTag.Query​Retrieve​Level, "0", new DicomSubstituteSetting { ReplaceWith = "Anonymous" }, "Anonymous" }; // CS 16bytes maximum Uppercase characters, "0"-"9", the SPACE character, and underscore "_"
+            yield return new object[] { DicomTag.Ethnic​Group, "TEST", new DicomSubstituteSetting { ReplaceWith = "AnonymousAnonymousAnonymous" }, "AnonymousAnonymousAnonymous" }; // SH
+            yield return new object[] { DicomTag.SOP​Classes​In​Study, "12345", null, "Anonymous" }; // UI "0"-"9", "."
+            yield return new object[] { DicomTag.Frame​Acquisition​Date​Time, "20200101", null, "Anonymous" }; // DT YYYYMMDDHHMMSS.FFFFFF&ZZXX
+            yield return new object[] { DicomTag.Expiry​Date, "20200101", new DicomSubstituteSetting { ReplaceWith = "2000-01-01" }, "2000-01-01" }; // DA YYYYMMDD
+            yield return new object[] { DicomTag.Secondary​Review​Time, "120101.000", new DicomSubstituteSetting { ReplaceWith = "invalid time" }, "invalid time" }; // TM HHMMSS.FFFFFF
+            yield return new object[] { DicomTag.Patient​Weight, "53.000", null, "Anonymous" }; // DS
+            yield return new object[] { DicomTag.Stage​Number, "10", null, "Anonymous" }; // IS
+            yield return new object[] { DicomTag.Patient​Age, "010Y", new DicomSubstituteSetting { ReplaceWith = "200" }, "200" }; // AS
+            yield return new object[] { DicomTag.Patient​Birth​Name, "Name", new DicomSubstituteSetting { ReplaceWith = "Name=Name=Name=Name" }, "Name=Name=Name=Name" }; // PN
+        }
+
+        public static IEnumerable<object[]> GetInValidStringVMForSubstitute()
+        {
+            yield return new object[] { DicomTag.Station​AE​Title, "TEST", new DicomSubstituteSetting { ReplaceWith = "Anonymous\\Anonymous\\Anonymous" }, "Anonymous\\Anonymous\\Anonymous" }; // AE 16bytes maximum
+            yield return new object[] { DicomTag.Query​Retrieve​Level, "0", new DicomSubstituteSetting { ReplaceWith = "0\\1\\2" }, "0\\1\\2" }; // CS 16bytes maximum Uppercase characters, "0"-"9", the SPACE character, and underscore "_"
+            yield return new object[] { DicomTag.Ethnic​Group, "TEST", new DicomSubstituteSetting { ReplaceWith = "Anonymous\\Anonymous" }, "Anonymous\\Anonymous" }; // SH
+            yield return new object[] { DicomTag.Expiry​Date, "20200101", new DicomSubstituteSetting { ReplaceWith = "2000-01-01\\2000-01-01" }, "2000-01-01\\2000-01-01" }; // DA YYYYMMDD
+            yield return new object[] { DicomTag.Stage​Number, "1234", new DicomSubstituteSetting { ReplaceWith = "23456\\123" }, "23456\\123" }; // IS
+        }
+
+        public static IEnumerable<object[]> GetInValidReplaceValueTypeForSubstitute()
+        {
+            yield return new object[] { DicomTag.Longitudinal​Temporal​Offset​From​Event, "12345", null, "Anonymous" }; // FD
         }
 
         [Theory]
-        [MemberData(nameof(GetValidItemAndSettingForSubstitute))]
+        [MemberData(nameof(GetValidSettingForSubstitute))]
         public void GivenADataSetWithValidVRForSubstitute_WhenSubstitute_ValueWillBeReplaced(DicomTag tag, string value, DicomSubstituteSetting settings, string replaceWith)
+        {
+            // value = "00100010";
+            var dataset = new DicomDataset
+            {
+                { tag, value },
+            };
+            Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), null, settings);
+            Assert.Equal(replaceWith, dataset.GetDicomItem<DicomElement>(tag).Get<string>());
+        }
+
+        [Theory]
+        [MemberData(nameof(GetInValidStringFormatForSubstitute))]
+        [MemberData(nameof(GetInValidStringVMForSubstitute))]
+        [MemberData(nameof(GetInValidReplaceValueTypeForSubstitute))]
+        public void GivenADataSetWithInvalidReplaceValueForSubstitute_WhenSubstitute_ExceptionWillBeThrown(DicomTag tag, string value, DicomSubstituteSetting settings, string replaceWith)
         {
             var dataset = new DicomDataset
             {
                 { tag, value },
             };
 
+            Assert.Throws<AnonymizationConfigurationException>(() => Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), null, settings));
+        }
+
+        [Theory]
+        [MemberData(nameof(GetInValidStringFormatForSubstitute))]
+        [MemberData(nameof(GetInValidStringVMForSubstitute))]
+        public void GivenADataSetWithInvalidStringAndVMForSubstitute_WhenSubstituteWithoutAutoValidation_ResultWillBeReturned(DicomTag tag, string value, DicomSubstituteSetting settings, string replaceWith)
+        {
+            var dataset = new DicomDataset
+            {
+                { tag, value },
+            };
+
+            dataset.AutoValidate = false;
             Processor.Process(dataset, dataset.GetDicomItem<DicomElement>(tag), null, settings);
             Assert.Equal(replaceWith, dataset.GetDicomItem<DicomElement>(tag).Get<string>());
         }

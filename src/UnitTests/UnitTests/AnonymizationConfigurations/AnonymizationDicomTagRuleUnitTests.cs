@@ -12,7 +12,6 @@ using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
 using Dicom.Anonymization.Model;
 using Dicom.Anonymization.Processors.Settings;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace UnitTests.AnonymizationConfigurations

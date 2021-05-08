@@ -33,7 +33,7 @@ namespace Dicom.Anonymization.Processors
             EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
             EnsureArg.IsNotNull(item, nameof(item));
 
-            if (!IsValidItemForEncrypt(item))
+            if (dicomDataset.AutoValidate && !IsValidItemForEncrypt(item))
             {
                 throw new AnonymizationOperationException(DicomAnonymizationErrorCode.UnsupportedAnonymizationFunction, $"Encrypt is not supported for {item.ValueRepresentation}");
             }
@@ -72,6 +72,10 @@ namespace Dicom.Anonymization.Processors
                     }
 
                     dicomDataset.AddOrUpdate(element);
+                }
+                else
+                {
+                    throw new AnonymizationOperationException(DicomAnonymizationErrorCode.UnsupportedAnonymizationFunction, $"Encrypt is not supported for {item.ValueRepresentation}");
                 }
             }
             catch (Exception ex)

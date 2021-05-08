@@ -1,4 +1,20 @@
 ﻿{
+    "rules": [
+        {
+            "tag": "RetrieveAETitle",
+            "method": "substitute",
+            "params": { "replaceWith": "newValue" }
+        },
+        {
+            "tag": "PatientAge",
+            "method": "substitute",
+            "params": { "replaceWith": "050Y" }
+        },
+        {
+            "tag": "LongCodeValue",
+            "method": "cryptoHash"
+        }
+    ],
     "defaultSettings": {
         "perturb": {
             "span": "1",

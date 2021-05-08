@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
@@ -18,6 +19,6 @@ namespace Dicom.Anonymization.AnonymizationConfigurations
         public AnonymizationDefaultSettings DefaultSettings { get; set; }
 
         [DataMember(Name = "customizedSettings")]
-        public Dictionary<string, object> CustomizedSettings { get; set; }
+        public Dictionary<string, JObject> CustomizedSettings { get; set; }
     }
 }

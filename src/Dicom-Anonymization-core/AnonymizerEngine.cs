@@ -13,19 +13,19 @@ using Microsoft.Extensions.Logging;
 
 namespace Dicom.Anonymization
 {
-    public class AnonymizationEngine
+    public class AnonymizerEngine
     {
         private readonly Dictionary<string, IAnonymizationProcessor> _processors = new Dictionary<string, IAnonymizationProcessor> { };
         private readonly AnonymizationDicomTagRule[] _rulesByTag;
         private readonly AnonymizationDefaultSettings _defaultSettings;
-        private readonly ILogger _logger = AnonymizerLogging.CreateLogger<AnonymizationEngine>();
+        private readonly ILogger _logger = AnonymizerLogging.CreateLogger<AnonymizerEngine>();
 
-        public AnonymizationEngine(string configFilePath = "configuration-sample.json")
+        public AnonymizerEngine(string configFilePath = "configuration-sample.json")
             : this(AnonymizationConfigurationManager.CreateFromConfigurationFile(configFilePath))
         {
         }
 
-        public AnonymizationEngine(AnonymizationConfigurationManager configurationManager)
+        public AnonymizerEngine(AnonymizationConfigurationManager configurationManager)
         {
             _defaultSettings = configurationManager.GetDefaultSettings();
             InitializeProcessors(configurationManager);
@@ -34,9 +34,11 @@ namespace Dicom.Anonymization
             _logger.LogDebug("AnonymizerEngine initialized successfully");
         }
 
-        public void Anonymize(DicomDataset dataset)
+        [Obsolete]
+        public void Anonymize(DicomDataset dataset, bool autoValidation = true)
         {
             var basicInfo = ExtractBasicInformation(dataset);
+            dataset.AutoValidate = autoValidation;
             var curDataset = dataset.ToArray();
             foreach (var item in curDataset)
             {
