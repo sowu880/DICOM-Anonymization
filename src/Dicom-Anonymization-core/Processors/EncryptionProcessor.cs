@@ -8,14 +8,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using De_Id_Function_Shared;
-using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
-using Dicom.Anonymization.Model;
-using Dicom.Anonymization.Processors.Model;
-using Dicom.Anonymization.Processors.Settings;
+using Dicom;
 using Dicom.IO.Buffer;
 using EnsureThat;
+using Microsoft.Health.Dicom.Anonymizer.Core.Exceptions;
+using Microsoft.Health.Dicom.Anonymizer.Core.Model;
+using Microsoft.Health.Dicom.Anonymizer.Core.Processors.Model;
+using Microsoft.Health.Dicom.Anonymizer.Core.Processors.Settings;
 
-namespace Dicom.Anonymization.Processors
+namespace Microsoft.Health.Dicom.Anonymizer.Core.Processors
 {
     public class EncryptionProcessor : IAnonymizationProcessor
     {
@@ -82,7 +83,7 @@ namespace Dicom.Anonymization.Processors
             {
                 if (ex is DicomValidationException)
                 {
-                    throw new AnonymizationOperationException(DicomAnonymizationErrorCode.UnsupportedAnonymizationFunction, $"Encrypt is not supported for {item.ValueRepresentation}");
+                    throw new AnonymizationOperationException(DicomAnonymizationErrorCode.UnsupportedAnonymizationFunction, $"Encrypt is not supported for {item.ValueRepresentation}", ex);
                 }
 
                 throw;

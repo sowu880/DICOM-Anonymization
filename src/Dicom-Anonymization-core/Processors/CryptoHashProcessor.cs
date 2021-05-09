@@ -7,18 +7,19 @@ using System;
 using System.Linq;
 using System.Text;
 using De_Id_Function_Shared;
-using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
-using Dicom.Anonymization.Model;
-using Dicom.Anonymization.Processors.Model;
-using Dicom.Anonymization.Processors.Settings;
+using Dicom;
 using Dicom.IO.Buffer;
 using EnsureThat;
+using Microsoft.Health.Dicom.Anonymizer.Core.Exceptions;
+using Microsoft.Health.Dicom.Anonymizer.Core.Model;
+using Microsoft.Health.Dicom.Anonymizer.Core.Processors.Model;
+using Microsoft.Health.Dicom.Anonymizer.Core.Processors.Settings;
 
-namespace Dicom.Anonymization.Processors
+namespace Microsoft.Health.Dicom.Anonymizer.Core.Processors
 {
     public class CryptoHashProcessor : IAnonymizationProcessor
     {
-        private DicomCryptoHashSetting _defaultSetting;
+        private readonly DicomCryptoHashSetting _defaultSetting;
 
         public CryptoHashProcessor(DicomCryptoHashSetting defaultSetting)
         {

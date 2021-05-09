@@ -4,9 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using De_Id_Function_Shared.Exceptions;
-using EnsureThat;
 
 namespace De_Id_Function_Shared
 {
@@ -27,6 +25,5 @@ namespace De_Id_Function_Shared
                 throw new DeIDFunctionException();
             }
         }
-
     }
 }

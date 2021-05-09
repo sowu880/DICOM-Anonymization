@@ -4,15 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using De_Id_Function_Shared.Settings;
-using Dicom.Anonymization.AnonymizationConfigurations;
-using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
-using Dicom.Anonymization.Model;
+using Microsoft.Health.Dicom.Anonymizer.Core.Exceptions;
+using Microsoft.Health.Dicom.Anonymizer.Core.Model;
+using Microsoft.Health.Dicom.Anonymizer.Core.Processors.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Dicom.Anonymization.Processors.Settings
+namespace Microsoft.Health.Dicom.Anonymizer.Core.Processors.Settings
 {
     public class DicomDateShiftSetting : DateShiftSetting, IDicomAnonymizationSetting
     {

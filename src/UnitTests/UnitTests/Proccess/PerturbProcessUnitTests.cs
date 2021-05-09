@@ -7,9 +7,9 @@ using System;
 using System.Collections.Generic;
 using De_Id_Function_Shared;
 using Dicom;
-using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
-using Dicom.Anonymization.Processors;
-using Dicom.Anonymization.Processors.Settings;
+using Microsoft.Health.Dicom.Anonymizer.Core.Exceptions;
+using Microsoft.Health.Dicom.Anonymizer.Core.Processors;
+using Microsoft.Health.Dicom.Anonymizer.Core.Processors.Settings;
 using Dicom.IO.Buffer;
 using Xunit;
 

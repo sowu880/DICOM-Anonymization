@@ -3,10 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Dicom.Anonymization.Model;
-using Dicom.Anonymization.Processors.Settings;
+using Dicom;
+using Microsoft.Health.Dicom.Anonymizer.Core.Model;
+using Microsoft.Health.Dicom.Anonymizer.Core.Processors.Settings;
 
-namespace Dicom.Anonymization.Processors
+namespace Microsoft.Health.Dicom.Anonymizer.Core.Processors
 {
     public interface IAnonymizationProcessor
     {

@@ -4,9 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
 
-namespace Dicom.Anonymization.Processors.Settings
+namespace Microsoft.Health.Dicom.Anonymizer.Core.Processors.Settings
 {
     public interface IDicomAnonymizationSetting
     {

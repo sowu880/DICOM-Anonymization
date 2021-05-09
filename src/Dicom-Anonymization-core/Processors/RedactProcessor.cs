@@ -7,11 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using De_Id_Function_Shared;
-using Dicom.Anonymization.Model;
-using Dicom.Anonymization.Processors.Settings;
+using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Anonymizer.Core.Model;
+using Microsoft.Health.Dicom.Anonymizer.Core.Processors.Settings;
 
-namespace Dicom.Anonymization.Processors
+namespace Microsoft.Health.Dicom.Anonymizer.Core.Processors
 {
     public class RedactProcessor : IAnonymizationProcessor
     {

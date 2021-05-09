@@ -6,39 +6,42 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Dicom.Anonymization.AnonymizationConfigurations;
-using Dicom.Anonymization.Model;
-using Dicom.Anonymization.Processors;
+using Dicom;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Anonymizer.Core.AnonymizerConfigurations;
+using Microsoft.Health.Dicom.Anonymizer.Core.Model;
+using Microsoft.Health.Dicom.Anonymizer.Core.Processors;
 
-namespace Dicom.Anonymization
+namespace Microsoft.Health.Dicom.Anonymizer.Core
 {
     public class AnonymizerEngine
     {
         private readonly Dictionary<string, IAnonymizationProcessor> _processors = new Dictionary<string, IAnonymizationProcessor> { };
-        private readonly AnonymizationDicomTagRule[] _rulesByTag;
-        private readonly AnonymizationDefaultSettings _defaultSettings;
+        private readonly AnonymizerDicomTagRule[] _rulesByTag;
         private readonly ILogger _logger = AnonymizerLogging.CreateLogger<AnonymizerEngine>();
+        private readonly AnonymizerSettings _anonymizerSettings;
 
-        public AnonymizerEngine(string configFilePath = "configuration-sample.json")
-            : this(AnonymizationConfigurationManager.CreateFromConfigurationFile(configFilePath))
+        public AnonymizerEngine(string configFilePath = "configuration-sample.json", AnonymizerSettings anonymizerSettings = null)
+            : this(AnonymizerConfigurationManager.CreateFromConfigurationFile(configFilePath), anonymizerSettings)
         {
         }
 
-        public AnonymizerEngine(AnonymizationConfigurationManager configurationManager)
+        public AnonymizerEngine(AnonymizerConfigurationManager configurationManager, AnonymizerSettings anonymizerSettings = null)
         {
-            _defaultSettings = configurationManager.GetDefaultSettings();
-            InitializeProcessors(configurationManager);
+            _anonymizerSettings = anonymizerSettings ?? new AnonymizerSettings();
+            InitializeProcessors(configurationManager.GetDefaultSettings());
             _rulesByTag = configurationManager.DicomTagRules;
-
             _logger.LogDebug("AnonymizerEngine initialized successfully");
         }
 
-        [Obsolete]
-        public void Anonymize(DicomDataset dataset, bool autoValidation = true)
+        public void Anonymize(DicomDataset dataset)
         {
+            ValidateInput(dataset);
+
+            // Extract SOPInstanceUID, SereisInstanceUID and StudyInstanceUID
             var basicInfo = ExtractBasicInformation(dataset);
-            dataset.AutoValidate = autoValidation;
+            dataset.AutoValidate = _anonymizerSettings.AutoValidate;
+
             var curDataset = dataset.ToArray();
             foreach (var item in curDataset)
             {
@@ -60,11 +63,24 @@ namespace Dicom.Anonymization
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning($"Fail to anonymize Item {item.Tag.DictionaryEntry.Name} using {method} method. The original value will be kept.", ex);
+                        if (_anonymizerSettings.SkipFailedItem)
+                        {
+                            _logger.LogWarning($"Fail to anonymize Item {item.Tag.DictionaryEntry.Name} using {method} method. The original value will be kept.", ex);
+                        }
+                        else
+                        {
+                            throw;
+                        }
                     }
-
-                    continue;
                 }
+            }
+        }
+
+        private void ValidateInput(DicomDataset dataset)
+        {
+            if (_anonymizerSettings.ValidateInput)
+            {
+                dataset.Validate();
             }
         }
 
@@ -79,17 +95,17 @@ namespace Dicom.Anonymization
             return basicInfo;
         }
 
-        private void InitializeProcessors(AnonymizationConfigurationManager configurationManager)
+        private void InitializeProcessors(AnonymizerDefaultSettings defaultSettings)
         {
-            _processors.Add(AnonymizationMethod.Redact.ToString().ToUpperInvariant(), new RedactProcessor(_defaultSettings.RedactDefaultSetting));
-            _processors.Add(AnonymizationMethod.Keep.ToString().ToUpperInvariant(), new KeepProcessor());
-            _processors.Add(AnonymizationMethod.Remove.ToString().ToUpperInvariant(), new RemoveProcessor());
-            _processors.Add(AnonymizationMethod.RefreshUID.ToString().ToUpperInvariant(), new RefreshUIDProcessor());
-            _processors.Add(AnonymizationMethod.Substitute.ToString().ToUpperInvariant(), new SubstituteProcessor(_defaultSettings.SubstituteDefaultSetting));
-            _processors.Add(AnonymizationMethod.Perturb.ToString().ToUpperInvariant(), new PerturbProcessor(_defaultSettings.PerturbDefaultSetting));
-            _processors.Add(AnonymizationMethod.Encrypt.ToString().ToUpperInvariant(), new EncryptionProcessor(_defaultSettings.EncryptDefaultSetting));
-            _processors.Add(AnonymizationMethod.CryptoHash.ToString().ToUpperInvariant(), new CryptoHashProcessor(_defaultSettings.CryptoHashDefaultSetting));
-            _processors.Add(AnonymizationMethod.DateShift.ToString().ToUpperInvariant(), new DateShiftProcessor(_defaultSettings.DateShiftDefaultSetting));
+            _processors.Add(AnonymizerMethod.Redact.ToString().ToUpperInvariant(), new RedactProcessor(defaultSettings.RedactDefaultSetting));
+            _processors.Add(AnonymizerMethod.Keep.ToString().ToUpperInvariant(), new KeepProcessor());
+            _processors.Add(AnonymizerMethod.Remove.ToString().ToUpperInvariant(), new RemoveProcessor());
+            _processors.Add(AnonymizerMethod.RefreshUID.ToString().ToUpperInvariant(), new RefreshUIDProcessor());
+            _processors.Add(AnonymizerMethod.Substitute.ToString().ToUpperInvariant(), new SubstituteProcessor(defaultSettings.SubstituteDefaultSetting));
+            _processors.Add(AnonymizerMethod.Perturb.ToString().ToUpperInvariant(), new PerturbProcessor(defaultSettings.PerturbDefaultSetting));
+            _processors.Add(AnonymizerMethod.Encrypt.ToString().ToUpperInvariant(), new EncryptionProcessor(defaultSettings.EncryptDefaultSetting));
+            _processors.Add(AnonymizerMethod.CryptoHash.ToString().ToUpperInvariant(), new CryptoHashProcessor(defaultSettings.CryptoHashDefaultSetting));
+            _processors.Add(AnonymizerMethod.DateShift.ToString().ToUpperInvariant(), new DateShiftProcessor(defaultSettings.DateShiftDefaultSetting));
         }
     }
 }

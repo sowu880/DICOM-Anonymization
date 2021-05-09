@@ -1,21 +1,15 @@
-﻿using Dicom.Anonymization.Model;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
 
-namespace Dicom.Anonymization.AnonymizationConfigurations.Exceptions
+using System;
+using Microsoft.Health.Dicom.Anonymizer.Core.Model;
+
+namespace Microsoft.Health.Dicom.Anonymizer.Core.Exceptions
 {
     public class DicomAnonymizationException : Exception
     {
-        public DicomAnonymizationException()
-        {
-        }
-
-        public DicomAnonymizationException(string message)
-            : base(message)
-        {
-        }
-
         public DicomAnonymizationException(DicomAnonymizationErrorCode templateManagementErrorCode, string message)
             : base(message)
         {

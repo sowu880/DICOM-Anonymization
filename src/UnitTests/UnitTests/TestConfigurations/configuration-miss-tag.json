@@ -1,13 +1,7 @@
 ﻿{
     "rules": [
         {
-            "tag": "DA",
             "method": "dateshift"
-        },
-        {
-            "tag": "DA",
-            "method": "dateshift",
-            "params": [ 3 ]
         }
     ],
     "defaultSettings": {

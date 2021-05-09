@@ -4,14 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using De_Id_Function_Shared;
-using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
-using Dicom.Anonymization.Model;
+using Microsoft.Health.Dicom.Anonymizer.Core.Exceptions;
+using Microsoft.Health.Dicom.Anonymizer.Core.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Dicom.Anonymization.Processors.Settings
+namespace Microsoft.Health.Dicom.Anonymizer.Core.Processors.Settings
 {
     public class DicomPerturbSetting : PerturbSetting, IDicomAnonymizationSetting
     {
@@ -28,7 +27,6 @@ namespace Dicom.Anonymization.Processors.Settings
                 throw new AnonymizationConfigurationException(DicomAnonymizationErrorCode.InvalidRuleSettings, "Fail to parse perturb setting", ex);
             }
         }
-
 
         public IDicomAnonymizationSetting CreateFromRuleSettings(JObject settings)
         {

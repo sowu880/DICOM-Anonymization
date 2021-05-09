@@ -4,12 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Dicom.Anonymization.AnonymizationConfigurations.Exceptions;
-using Dicom.Anonymization.Model;
-using Dicom.Anonymization.Processors.Settings;
+using Dicom;
 using EnsureThat;
+using Microsoft.Health.Dicom.Anonymizer.Core.Exceptions;
+using Microsoft.Health.Dicom.Anonymizer.Core.Model;
+using Microsoft.Health.Dicom.Anonymizer.Core.Processors.Settings;
 
-namespace Dicom.Anonymization.Processors
+namespace Microsoft.Health.Dicom.Anonymizer.Core.Processors
 {
     public class RefreshUIDProcessor : IAnonymizationProcessor
     {

@@ -3,16 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Anonymizer.Core.Model
+namespace Microsoft.Health.Dicom.Anonymizer.Core.AnonymizerConfigurations
 {
-    public enum DicomAnonymizationErrorCode
+    public enum AnonymizerMethod
     {
-        MissingConfigurationFields,
-        InvalidConfigurationValues,
-        UnsupportedAnonymizationRule,
-        MissingRuleSettings,
-        InvalidRuleSettings,
-
-        UnsupportedAnonymizationFunction,
+        Redact,
+        DateShift,
+        CryptoHash,
+        Keep,
+        Perturb,
+        Encrypt,
+        Remove,
+        RefreshUID,
+        Substitute,
     }
 }

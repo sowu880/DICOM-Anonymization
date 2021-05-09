@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Dicom-Anonymization-core\Dicom-Anonymization.csproj" />
+    <ProjectReference Include="..\Dicom-Anonymization-core\Microsoft.Health.Dicom.Anonymizer.Core.csproj" />
   </ItemGroup>
 
 </Project>

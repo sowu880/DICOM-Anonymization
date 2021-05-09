@@ -8,7 +8,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dicom-Anonymization", "src\Dicom-Anonymization-core\Dicom-Anonymization.csproj", "{8EC641D0-C103-4552-AF95-6FD4D6B8670E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Anonymizer.Core", "src\Dicom-Anonymization-core\Microsoft.Health.Dicom.Anonymizer.Core.csproj", "{8EC641D0-C103-4552-AF95-6FD4D6B8670E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "src\UnitTests\UnitTests\UnitTests.csproj", "{F6EC5928-B08A-4B55-A47C-7131C0BBA732}"
 EndProject

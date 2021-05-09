@@ -5,7 +5,7 @@
 
 using Microsoft.Extensions.Logging;
 
-namespace Dicom.Anonymization
+namespace Microsoft.Health.Dicom.Anonymizer.Core
 {
     public static class AnonymizerLogging
     {

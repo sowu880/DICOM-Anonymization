@@ -7,9 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dicom;
-using Dicom.Anonymization.Model;
-using Dicom.Anonymization.Processors;
-using Dicom.Anonymization.Processors.Settings;
+using Microsoft.Health.Dicom.Anonymizer.Core.Model;
+using Microsoft.Health.Dicom.Anonymizer.Core.Processors;
+using Microsoft.Health.Dicom.Anonymizer.Core.Processors.Settings;
 using Dicom.IO.Buffer;
 using Xunit;
 

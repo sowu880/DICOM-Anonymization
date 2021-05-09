@@ -3,20 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using Newtonsoft.Json.Linq;
 
-namespace Dicom.Anonymization.AnonymizationConfigurations
+namespace Microsoft.Health.Dicom.Anonymizer.Core.AnonymizerConfigurations
 {
     [DataContract]
-    public class AnonymizationConfiguration
+    public class AnonymizerConfiguration
     {
         [DataMember(Name = "rules")]
-        public Dictionary<string, object>[] DicomTagRules { get; set; }
+        public JObject[] DicomTagRules { get; set; }
 
         [DataMember(Name = "defaultSettings")]
-        public AnonymizationDefaultSettings DefaultSettings { get; set; }
+        public AnonymizerDefaultSettings DefaultSettings { get; set; }
 
         [DataMember(Name = "customizedSettings")]
         public Dictionary<string, JObject> CustomizedSettings { get; set; }

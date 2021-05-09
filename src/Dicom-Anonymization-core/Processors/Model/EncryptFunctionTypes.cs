@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
 
-namespace Dicom.Anonymization.Model
+namespace Microsoft.Health.Dicom.Anonymizer.Core.Model
 {
     public enum EncryptFunctionTypes
     {
+        // RSA could be supported in the future
         AES,
-        RSA,
     }
 }

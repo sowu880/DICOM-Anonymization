@@ -5,13 +5,23 @@
 
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using Dicom.Anonymization.Processors.Settings;
+using Microsoft.Health.Dicom.Anonymizer.Core.Processors.Settings;
 
-namespace Dicom.Anonymization.AnonymizationConfigurations
+namespace Microsoft.Health.Dicom.Anonymizer.Core.AnonymizerConfigurations
 {
     [DataContract]
-    public class AnonymizationDefaultSettings
+    public class AnonymizerDefaultSettings
     {
+        public static Dictionary<string, IDicomAnonymizationSetting> DicomSettingsMapping = new Dictionary<string, IDicomAnonymizationSetting>()
+        {
+            { "perturb", new DicomPerturbSetting() },
+            { "substitute", new DicomSubstituteSetting() },
+            { "dateshift", new DicomDateShiftSetting() },
+            { "encrypt", new DicomEncryptionSetting() },
+            { "cryptohash", new DicomCryptoHashSetting() },
+            { "redact", new DicomRedactSetting() },
+        };
+
         [DataMember(Name = "perturb")]
         public DicomPerturbSetting PerturbDefaultSetting { get; set; } = new DicomPerturbSetting();
 
@@ -29,16 +39,6 @@ namespace Dicom.Anonymization.AnonymizationConfigurations
 
         [DataMember(Name = "redact")]
         public DicomRedactSetting RedactDefaultSetting { get; set; } = new DicomRedactSetting();
-
-        public static Dictionary<string, IDicomAnonymizationSetting> DicomSettingsMapping = new Dictionary<string, IDicomAnonymizationSetting>()
-        {
-            { "perturb", new DicomPerturbSetting() },
-            { "substitute", new DicomSubstituteSetting() },
-            { "dateshift", new DicomDateShiftSetting() },
-            { "encrypt", new DicomEncryptionSetting() },
-            { "cryptohash", new DicomCryptoHashSetting() },
-            { "redact", new DicomRedactSetting() },
-        };
 
         public IDicomAnonymizationSetting GetDefaultSetting(string method)
         {

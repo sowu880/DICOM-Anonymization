@@ -3,16 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Anonymizer.Core.Model
+namespace Microsoft.Health.Dicom.Anonymizer.Core.AnonymizerConfigurations
 {
-    public enum DicomAnonymizationErrorCode
+    public class AnonymizerSettings
     {
-        MissingConfigurationFields,
-        InvalidConfigurationValues,
-        UnsupportedAnonymizationRule,
-        MissingRuleSettings,
-        InvalidRuleSettings,
+        public bool ValidateInput { get; set; } = false;
 
-        UnsupportedAnonymizationFunction,
+        public bool SkipFailedItem { get; set; } = true;
+
+        public bool AutoValidate { get; set; } = true;
     }
 }

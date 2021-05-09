@@ -1,13 +1,8 @@
 ﻿{
     "rules": [
         {
-            "tag": "DA",
-            "method": "dateshift"
-        },
-        {
-            "tag": "DA",
-            "method": "dateshift",
-            "params": [ 3 ]
+            "tag": "(0008,0050)",
+            "method": "invalid"
         }
     ],
     "defaultSettings": {

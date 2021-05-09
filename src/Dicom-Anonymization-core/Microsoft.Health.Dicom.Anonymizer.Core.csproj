@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>Dicom.Anonymization</RootNamespace>
+    <RootNamespace>Microsoft.Health.Dicom.Anonymizer.Core</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
