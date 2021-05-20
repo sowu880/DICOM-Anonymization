@@ -105,35 +105,6 @@ namespace UnitTests
             Assert.Equal(result, dataset.GetDicomItem<DicomElement>(tag).Get<string>());
         }
 
-        [Fact]
-        public void GivenADataSetWithDicomElementOB_WhenCryptoHash_ValueWillBeHashed()
-        {
-            var tag = DicomTag.PixelData;
-            var item = new DicomOtherByte(tag, Convert.FromBase64String("test"));
-            var dataset = new DicomDataset(item);
-
-            Processor.Process(dataset, item, null, new DicomCryptoHashSetting() { CryptoHashKey = "123" });
-            Assert.Equal(Convert.FromBase64String("w/6pPBK4e4ZFIc7W6+6qqXH4A0rUg4km8IK59Rjt75Q="), dataset.GetDicomItem<DicomOtherByte>(tag).Get<byte[]>());
-        }
-
-        [Fact]
-        public void GivenADataSetWithDicomFragmentSequence_WhenCryptoHash_FragmentsWillBeHashed()
-        {
-            var tag = DicomTag.PixelData;
-            var item = new DicomOtherByteFragment(tag);
-            item.Fragments.Add(new MemoryByteBuffer(Convert.FromBase64String("fragment")));
-            item.Fragments.Add(new MemoryByteBuffer(Convert.FromBase64String("fragment")));
-
-            var dataset = new DicomDataset(item);
-
-            Processor.Process(dataset, item, null, new DicomCryptoHashSetting() { CryptoHashKey = "123" });
-
-            var enumerator = ((DicomFragmentSequence)dataset.GetDicomItem<DicomItem>(tag)).GetEnumerator();
-            while (enumerator.MoveNext())
-            {
-                Assert.Equal(Convert.FromBase64String("GtEBG8QlAopjolcUAoegjTjQ8gPkvfBjsHes9uymUak ="), enumerator.Current.Data);
-            }
-        }
 
         [Fact]
         public void GivenADataSetWithSQItem_WhenCryptoHash_ExceptionWillBeThrown()
