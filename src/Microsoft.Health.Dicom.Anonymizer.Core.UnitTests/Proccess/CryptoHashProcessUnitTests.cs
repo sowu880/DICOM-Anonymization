@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Dicom;
 using Dicom.IO.Buffer;
 using Microsoft.Health.Dicom.Anonymizer.Core.Exceptions;
@@ -105,6 +107,37 @@ namespace UnitTests
             Assert.Equal(result, dataset.GetDicomItem<DicomElement>(tag).Get<string>());
         }
 
+        [Fact]
+        public void GivenADataSetWithDicomElementOB_WhenCryptoHash_ValueWillBeHashed()
+        {
+            var tag = DicomTag.PixelData;
+            var item = new DicomOtherByte(tag, Encoding.UTF8.GetBytes("test"));
+            var dataset = new DicomDataset(item);
+
+            Processor.Process(dataset, item, null, new DicomCryptoHashSetting() { CryptoHashKey = "123" });
+            var resultBytes = dataset.GetDicomItem<DicomOtherByte>(tag).Get<byte[]>();
+            Assert.Equal("a7f5c8c626f994482813230854f66700e626208f52d913b9bd6b4e039aab0f41", string.Concat(resultBytes.Select(b => b.ToString("x2"))));
+        }
+
+        [Fact]
+        public void GivenADataSetWithDicomFragmentSequence_WhenCryptoHash_FragmentsWillBeHashed()
+        {
+            var tag = DicomTag.PixelData;
+            var item = new DicomOtherByteFragment(tag);
+            item.Fragments.Add(new MemoryByteBuffer(Convert.FromBase64String("fragment")));
+            item.Fragments.Add(new MemoryByteBuffer(Convert.FromBase64String("fragment")));
+
+            var dataset = new DicomDataset(item);
+
+            Processor.Process(dataset, item, null, new DicomCryptoHashSetting() { CryptoHashKey = "123" });
+
+            var enumerator = ((DicomFragmentSequence)dataset.GetDicomItem<DicomItem>(tag)).GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                var resultString = string.Concat(enumerator.Current.Data.Select(b => b.ToString("x2")));
+                Assert.Equal("1ad1011bc425028a63a257140287a08d38d0f203e4bdf063b077acf6eca651a9", resultString);
+            }
+        }
 
         [Fact]
         public void GivenADataSetWithSQItem_WhenCryptoHash_ExceptionWillBeThrown()
